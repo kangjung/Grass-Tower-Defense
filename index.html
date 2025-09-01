@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>잔디 타워 디펜스</title>
+    <style>
+        body {
+            margin: 0; background: #f6f8fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+        #container {
+            max-width: 1280px; width: 100%; margin-top: 40px;
+            background: #fff; border-radius: 12px; border: 1px solid #e1e4e8;
+            box-shadow: 0 0 12px rgba(0,0,0,0.07); padding: 24px;
+        }
+        #header {
+            display: flex; align-items: center; margin-bottom: 20px;
+        }
+        #avatar {
+            width: 60px; height: 60px; border-radius: 50%;
+            margin-right: 20px;
+        }
+        #nickname {
+            font-weight: 700; font-size: 1.5rem; color: #24292e;
+        }
+        #activity-label {
+            font-weight: 600; font-size: 1.1rem; margin-bottom: 16px; color: #24292e;
+            display: flex; align-items: center; gap: 8px;
+        }
+        #activity-label svg {
+            width: 24px; height: 24px; fill: #24292e;
+        }
+        #activityOverview {
+            display: flex;
+            gap: 24px;
+            background: #fafbfc;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 24px;
+            align-items: center;
+            margin-bottom: 36px;
+            max-width: 900px;
+            position: relative;
+        }
+        #dev-image {
+            position: relative;
+        }
+        #dev-image img {
+            width: 140px;
+            border-radius: 20px;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+            animation: subtleMove 3s ease-in-out infinite;
+        }
+        @keyframes subtleMove {
+            0%, 100% {transform: translateY(0);}
+            50% {transform: translateY(-6px);}
+        }
+        #coffeeIcon {
+            position: absolute;
+            top: 90px;
+            left: 32px;
+            width: 28px;
+            animation: steam 3s ease-in-out infinite;
+        }
+        @keyframes steam {
+            0%, 100% {opacity: 1; transform: translateY(0);}
+            50% {opacity: 0.6; transform: translateY(-6px);}
+        }
+        #controls {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            position: relative;
+        }
+        #controls button {
+            background: #2ea44f;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 7px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            width: fit-content;
+            transition: background-color 0.2s ease;
+        }
+        #controls button:hover {
+            background: #24943c;
+        }
+        #info {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c2e35;
+        }
+        #statusBars label {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        progress {
+            width: 100%;
+            height: 14px;
+            margin-top: 4px;
+            border-radius: 8px;
+            overflow: hidden;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        progress::-webkit-progress-bar {
+            background-color: #e0e0e0;
+            border-radius: 8px;
+        }
+        progress::-webkit-progress-value {
+            background-color: #2ea44f;
+            border-radius: 8px;
+        }
+        #dayClock {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            border: 1.4px solid #2ea44f;
+            border-radius: 50%;
+            background: white;
+        }
+        #gameCanvas {
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+            display: block;
+            margin: 0 auto 36px auto;
+            width: 100%;
+            max-width: 1280px;
+            height: 220px;
+        }
+        @media (max-width: 720px) {
+            #activityOverview {
+                flex-direction: column;
+                align-items: center;
+            }
+            #dev-image img {
+                width: 120px;
+            }
+            #controls {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="header">
+        <div id="avatar"></div>
+        <div id="nickname">black-kitty-dev</div>
+    </div>
+
+    <canvas id="gameCanvas" width="1280" height="220"></canvas>
+    <div id="activity-label">
+        <span>Contribution Activity</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 11H4V8h16v8zM7 10h2v2H7v-2zm3 0h2v2h-2v-2zM5 14h14v2H5v-2z"/>
+        </svg>
+    </div>
+
+    <div id="activityOverview">
+        <div id="dev-image">
+            <img src="/asset/avatar1.png" alt="Developer working" />
+        </div>
+        <div id="controls">
+            <button id="buyCoffee">커피 구매 (50코인)</button>
+            <button id="buyNotebook">노트북 구매 (500코인)</button>
+            <div id="info">
+                코인: <span id="coinCount">0</span> 작업량/일: <span id="workRateCount">0</span> Day: <span id="dayCount">1</span>
+            </div>
+            <canvas id="dayClock" width="80" height="80"></canvas>
+            <div id="statusBars">
+                <label for="fatigue">피로도</label>
+                <progress id="fatigue" value="30" max="100"></progress>
+                <label for="caffeine">카페인</label>
+                <progress id="caffeine" value="70" max="100"></progress>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    (() => {
+        const coinCount = document.getElementById('coinCount');
+        const workRateCount = document.getElementById('workRateCount');
+        const dayCount = document.getElementById('dayCount');
+        const fatigueBar = document.getElementById('fatigue');
+        const caffeineBar = document.getElementById('caffeine');
+        const dayClock = document.getElementById('dayClock');
+        const ctxClock = dayClock.getContext('2d');
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const ROWS = 7;
+        const COLS = 53;
+        const TILE_SIZE = 18;
+        const PADDING = 4;
+
+        let coins = 0;
+        let workRate = 3;
+        let day = 1;
+
+        let dev = {
+            power: workRate,
+            coffee: 0,
+            notebook: 0,
+            fatigue: 30,
+            caffeine: 70,
+        };
+
+        let grassLevels = new Array(ROWS * COLS).fill(0);
+        let grassUpgradeAllowed = new Array(ROWS * COLS).fill(true);
+
+        const grassWidth = COLS * (TILE_SIZE + PADDING) - PADDING;
+        const grassHeight = ROWS * (TILE_SIZE + PADDING) - PADDING;
+
+        const grassStartX = (canvas.width - grassWidth) / 2;
+        const grassStartY = (canvas.height - grassHeight) / 2;
+
+        const devImageElement = document.querySelector("#dev-image img:first-child");
+        const coffeeIcon = document.getElementById("coffeeIcon");
+
+        const avatar1 = '/asset/avatar1.png';
+        const avatar2 = '/asset/avatar2.png';
+        let avatarToggle = false;
+        let avatarInterval;
+        let coffeeTimeout;
+
+        function startAvatarToggle() {
+            avatarInterval = setInterval(() => {
+                avatarToggle = !avatarToggle;
+                devImageElement.src = avatarToggle ? avatar1 : avatar2;
+            }, 500);
+        }
+
+        function showCoffeeImage() {
+            clearInterval(avatarInterval);
+            clearTimeout(coffeeTimeout);
+            devImageElement.style.display = "none";
+            coffeeIcon.style.display = "block";
+            coffeeTimeout = setTimeout(() => {
+                coffeeIcon.style.display = "none";
+                devImageElement.style.display = "";
+                startAvatarToggle();
+            }, 3000);
+        }
+
+        startAvatarToggle();
+
+        document.getElementById("buyCoffee").onclick = () => {
+            if (coins >= 50) {
+                coins -= 50;
+                dev.coffee++;
+                dev.power += 2;
+                workRate += 2;
+                updateUI();
+                showCoffeeImage();
+            }
+        };
+
+        // document.getElementById("buyNotebook").onclick = () => {
+        //     if (coins >= 500) {
+        //         coins -= 500;
+        //         dev.notebook++;
+        //         dev.power += 10;
+        //         workRate += 10;
+        //         updateUI();
+        //     }
+        // };
+
+        class Tower {
+            constructor(x, y, level) {
+                this.x = x;
+                this.y = y;
+                this.level = level;
+                this.range = 120 + (level - 1) * 10;
+                this.damage = 5 + level * 3;
+                this.cooldown = 0;
+                this.cooldownMax = 30;
+                this.isAttacking = false;
+                this.attackEffectFrame = 0;
+                this.effectMaxFrames = 6;
+                this.effectTargetPos = null;
+                this.selected = false;
+            }
+            update() {
+                if (this.cooldown > 0) {
+                    this.cooldown--;
+                    this.attackEffectFrame++;
+                    if (this.attackEffectFrame > this.effectMaxFrames) {
+                        this.attackEffectFrame = 0;
+                        this.isAttacking = false;
+                        this.effectTargetPos = null;
+                    }
+                    return;
+                }
+                const targets = enemies.filter(e => !e.isDead && Math.hypot(e.x - this.x, e.y - this.y) <= this.range);
+                if (targets.length > 0) {
+                    targets.sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
+                    const t = targets[0];
+                    t.takeDamage(this.damage);
+                    this.cooldown = this.cooldownMax;
+                    this.isAttacking = true;
+                    this.attackEffectFrame = 0;
+                    this.effectTargetPos = { x: t.x, y: t.y };
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                const baseColors = ['#a9e34b', '#69c739', '#389431', '#0a641d'];
+                ctx.fillStyle = baseColors[this.level - 1] || '#eee';
+                ctx.fillRect(this.x - TILE_SIZE / 2, this.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
+
+                if (this.isAttacking) {
+                    ctx.strokeStyle = '#ffff99';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = 'rgba(255,255,153,0.7)';
+                    ctx.shadowBlur = 8;
+                    ctx.strokeRect(this.x - TILE_SIZE / 2, this.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
+                    ctx.shadowBlur = 0;
+                }
+
+                if (this.isAttacking && this.effectTargetPos) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.effectTargetPos.x, this.effectTargetPos.y);
+                    ctx.stroke();
+                }
+
+                if (this.selected) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(40,150,40,0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                this.left = grassStartX;
+                this.top = grassStartY;
+                this.right = grassStartX + grassWidth;
+                this.bottom = grassStartY + grassHeight;
+                this.speed = 2;
+                this.side = 0;
+                this.x = this.left;
+                this.y = this.top;
+                this.hp = 30;
+                this.isDead = false;
+            }
+            update() {
+                if (this.isDead) return;
+                switch (this.side) {
+                    case 0:
+                        this.x += this.speed;
+                        if (this.x >= this.right) {
+                            this.x = this.right;
+                            this.side = 1;
+                        }
+                        break;
+                    case 1:
+                        this.y += this.speed;
+                        if (this.y >= this.bottom) {
+                            this.y = this.bottom;
+                            this.side = 2;
+                        }
+                        break;
+                    case 2:
+                        this.x -= this.speed;
+                        if (this.x <= this.left) {
+                            this.x = this.left;
+                            this.side = 3;
+                        }
+                        break;
+                    case 3:
+                        this.y -= this.speed;
+                        if (this.y <= this.top) {
+                            this.y = this.top;
+                            this.side = 0;
+                        }
+                        break;
+                }
+            }
+            draw() {
+                if (this.isDead) return;
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, 9, 9, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#111';
+                ctx.beginPath();
+                ctx.moveTo(this.x - 6, this.y - 7);
+                ctx.lineTo(this.x - 3, this.y - 15);
+                ctx.lineTo(this.x - 1, this.y - 7);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(this.x + 6, this.y - 7);
+                ctx.lineTo(this.x + 3, this.y - 15);
+                ctx.lineTo(this.x + 1, this.y - 7);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.x - 4, this.y - 2, 1.7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x + 4, this.y - 2, 1.7, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            takeDamage(amount) {
+                this.hp -= amount;
+                if (this.hp <= 0) this.isDead = true;
+            }
+        }
+
+        let enemies = [];
+        let towers = [];
+
+        function updateTowers() {
+            towers.forEach(tower => tower.update());
+        }
+
+        function drawTowers() {
+            towers.forEach(tower => tower.draw());
+        }
+
+        function drawGrass() {
+            for (let col = 0; col < COLS; col++) {
+                for (let row = 0; row < ROWS; row++) {
+                    let idx = col * ROWS + row;
+                    let level = grassLevels[idx];
+                    let x = grassStartX + col * (TILE_SIZE + PADDING);
+                    let y = grassStartY + row * (TILE_SIZE + PADDING);
+                    const colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+                    ctx.fillStyle = colors[level];
+                    ctx.shadowColor = 'rgba(0,0,0,0.12)';
+                    ctx.shadowBlur = 2;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 1;
+                    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                    ctx.shadowColor = 'transparent';
+                    ctx.strokeStyle = '#bcf2a4';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+
+        function updateAndDrawEnemies() {
+            enemies.forEach(e => {
+                e.update();
+                e.draw();
+            });
+            enemies = enemies.filter(e => !e.isDead);
+        }
+
+        function updateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrass();
+            updateTowers();
+            updateAndDrawEnemies();
+            drawTowers();
+        }
+
+        function drawDayClock(progressPercent) {
+            const r = dayClock.width / 2;
+            ctxClock.clearRect(0, 0, dayClock.width, dayClock.height);
+            ctxClock.translate(r, r);
+
+            ctxClock.fillStyle = '#fff';
+            ctxClock.beginPath();
+            ctxClock.arc(0, 0, r - 5, 0, 2 * Math.PI);
+            ctxClock.fill();
+
+            ctxClock.strokeStyle = '#2ea44f';
+            ctxClock.lineWidth = 6;
+            ctxClock.beginPath();
+            ctxClock.arc(0, 0, r - 7, 0, 2 * Math.PI);
+            ctxClock.stroke();
+
+            const angle = progressPercent * 2 * Math.PI - Math.PI / 2;
+            ctxClock.strokeStyle = '#2ea44f';
+            ctxClock.lineWidth = 6;
+            ctxClock.beginPath();
+            ctxClock.moveTo(0, 0);
+            ctxClock.lineTo(r * Math.cos(angle), r * Math.sin(angle));
+            ctxClock.stroke();
+
+            ctxClock.resetTransform();
+        }
+
+        function updateUI() {
+            coinCount.textContent = coins;
+            workRateCount.textContent = workRate;
+            dayCount.textContent = day;
+            fatigueBar.value = dev.fatigue;
+            caffeineBar.value = dev.caffeine;
+        }
+
+        function lockGrassUpgrades() {
+            for (let i = 0; i < grassLevels.length; i++) {
+                if (grassLevels[i] > 0) grassUpgradeAllowed[i] = false;
+            }
+        }
+
+        function fillNextGrassCell(level) {
+            for (let col = 0; col < COLS; col++) {
+                for (let row = 0; row < ROWS; row++) {
+                    const idx = col * ROWS + row;
+                    if (grassLevels[idx] === 0) {
+                        grassLevels[idx] = level;
+                        grassUpgradeAllowed[idx] = false;
+                        // 타워로 등록
+                        let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+                        let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+                        towers.push(new Tower(x, y, level));
+                        return;
+                    }
+                }
+            }
+        }
+
+        let dayProgress = 0;
+
+        function nextDay() {
+            day++;
+            coins += Math.ceil(workRate * 1.5);
+
+            let level = 1;
+            if (workRate >= 120) level = 4;
+            else if (workRate >= 60) level = 3;
+            else if (workRate >= 20) level = 2;
+
+            fillNextGrassCell(level);
+            lockGrassUpgrades();
+            dayProgress = 0;
+            updateUI();
+
+            enemies.push(new Enemy());
+        }
+
+        // 타워 선택 기능
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            let clickedTower = null;
+            for (const t of towers) {
+                if (
+                    clickX >= t.x - TILE_SIZE/2 && clickX <= t.x + TILE_SIZE/2 &&
+                    clickY >= t.y - TILE_SIZE/2 && clickY <= t.y + TILE_SIZE/2
+                ) {
+                    clickedTower = t;
+                    break;
+                }
+            }
+            towers.forEach(t => t.selected = false);
+            if (clickedTower) clickedTower.selected = true;
+        });
+
+        function animateDayClock(timestamp) {
+            if (!animateDayClock.last) animateDayClock.last = timestamp;
+            const elapsed = timestamp - animateDayClock.last;
+            animateDayClock.last = timestamp;
+
+            dayProgress += elapsed / 7000; // 7초 하루
+            if (dayProgress > 1) dayProgress = 1;
+
+            drawDayClock(dayProgress);
+            requestAnimationFrame(animateDayClock);
+        }
+
+        document.getElementById('buyCoffee').onclick = () => {
+            if (coins >= 50) {
+                coins -= 50;
+                dev.coffee++;
+                dev.power += 2;
+                workRate += 2;
+                updateUI();
+            }
+        };
+
+        document.getElementById('buyNotebook').onclick = () => {
+            if (coins >= 500) {
+                coins -= 500;
+                dev.notebook++;
+                dev.power += 10;
+                workRate += 10;
+                updateUI();
+            }
+        };
+
+        function gameLoop() {
+            updateCanvas();
+            requestAnimationFrame(gameLoop);
+        }
+
+        updateUI();
+        gameLoop();
+        requestAnimationFrame(animateDayClock);
+        setInterval(nextDay, 7000);
+    })();
+</script>
+</body>
+</html>
