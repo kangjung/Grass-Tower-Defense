@@ -8,10 +8,33 @@
             margin: 0; background: #f6f8fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
+        #loginScreen {
+            width: 100%; max-width: 300px;
+            margin: 100px auto; text-align: center;
+        }
+        #loginScreen input {
+            width: 100%;
+            padding: 10px;
+            margin: 12px 0;
+            font-size: 1rem;
+        }
+        #loginScreen button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #2ea44f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #loginScreen button:hover {
+            background-color: #24943c;
+        }
         #container {
             max-width: 1280px; width: 100%; margin-top: 40px;
             background: #fff; border-radius: 12px; border: 1px solid #e1e4e8;
             box-shadow: 0 0 12px rgba(0,0,0,0.07); padding: 24px;
+            display: none;
         }
         #header {
             display: flex; align-items: center; margin-bottom: 20px;
@@ -161,6 +184,13 @@
     </style>
 </head>
 <body>
+
+<div id="loginScreen">
+    <h2>Git 로그인</h2>
+    <input type="text" id="gitNickname" placeholder="Git 닉네임 입력" />
+    <button id="loginBtn">게임 시작</button>
+</div>
+
 <div id="container">
     <div id="header">
         <div id="avatar"></div>
@@ -203,6 +233,30 @@
 
 <script>
     (() => {
+        let gameStarted = false;
+
+        const loginScreen = document.getElementById('loginScreen');
+        const loginBtn = document.getElementById('loginBtn');
+        const nicknameInput = document.getElementById('gitNickname');
+
+        const container = document.getElementById('container');
+        const nicknameLabel = document.getElementById('nickname');
+
+        loginBtn.addEventListener('click', () => {
+            const nickname = nicknameInput.value.trim();
+            if (!nickname) {
+                alert('닉네임을 입력해주세요.');
+                return;
+            }
+
+            nicknameLabel.textContent = nickname;
+            loginScreen.style.display = 'none';
+            container.style.display = 'block';
+            gameStarted = true;
+
+            startGame();
+        });
+
         const coinCount = document.getElementById('coinCount');
         const workRateCount = document.getElementById('workRateCount');
         const dayCount = document.getElementById('dayCount');
@@ -250,7 +304,7 @@
         let coffeeTimeout;
         let commitGauge = 0;
         let commitSpeed = 0.15;
-        let currentCommitIdx = 0; // 오늘 칠할 잔디 칸 인덱스
+        let currentCommitIdx = 0;
         let dailyCommitCount = 0;
 
         function updateCommitBar() {
@@ -260,22 +314,53 @@
             commitBar.textContent = percent + '%';
         }
 
+        function fillNextGrassCell(level) {
+            for (let col = 0; col < COLS; col++) {
+                for (let row = 0; row < ROWS; row++) {
+                    const idx = col * ROWS + row;
+                    if (grassLevels[idx] === 0) {
+                        grassLevels[idx] = level;
+                        grassUpgradeAllowed[idx] = false;
+
+                        let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+                        let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+
+                        towers.push(new Tower(x, y, level));
+                        return;
+                    }
+                }
+            }
+        }
+
+        function determineLevelBasedOnCommitCount(count) {
+            if(count >= 10) return 4;
+            if(count >= 5) return 3;
+            if(count >= 3) return 2;
+            if(count >= 1) return 1;
+            return 0;
+        }
+        function findTowerAt(idx) {
+            let col = Math.floor(idx / ROWS);
+            let row = idx % ROWS;
+            let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+            let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+            return towers.find(t => Math.abs(t.x - x) < 1 && Math.abs(t.y - y) < 1);
+        }
+
         function commitNow() {
             dailyCommitCount++;
             commitGauge = 0;
-            if(grassLevels[currentCommitIdx] === 0) {
+            updateCommitBar();
+
+            if (grassLevels[currentCommitIdx] === 0) {
                 fillNextGrassCell(1);
             } else {
-                // 이후 커밋 횟수에 따라 레벨 결정
                 let level = determineLevelBasedOnCommitCount(dailyCommitCount);
-
-                // 잔디 칸 레벨 갱신 및 타워 레벨업 처리
                 if (grassLevels[currentCommitIdx] < level) {
                     grassLevels[currentCommitIdx] = level;
                 }
                 grassUpgradeAllowed[currentCommitIdx] = false;
 
-                // 타워 찾기 및 레벨업
                 const tower = findTowerAt(currentCommitIdx);
                 if (tower) {
                     tower.level = grassLevels[currentCommitIdx];
@@ -285,15 +370,6 @@
                     tower.update();
                 }
             }
-            updateCommitBar();
-        }
-
-        function determineLevelBasedOnCommitCount(count) {
-            if(count >= 10) return 4;
-            if(count >= 5) return 3;
-            if(count >= 3) return 2;
-            if(count >= 1) return 1;
-            return 0;
         }
 
         function startAvatarToggle() {
@@ -315,8 +391,6 @@
             }, 3000);
         }
 
-        startAvatarToggle();
-
         document.getElementById("buyCoffee").onclick = () => {
             if (coins >= 50) {
                 coins -= 50;
@@ -334,7 +408,7 @@
                 dev.notebook++;
                 dev.power += 10;
                 workRate += 10;
-                commitSpeed += 0.05; // 빨라지는 커밋 속도
+                commitSpeed += 0.05;
                 updateUI();
             }
         };
@@ -365,31 +439,29 @@
                     }
                     return;
                 }
-                // 공격 사거리 안의 몬스터 찾기
                 const targets = enemies.filter(e => !e.isDead && Math.hypot(e.x - this.x, e.y - this.y) <= this.range);
-                console.log(targets);
-                console.log(targets.length);
                 if (targets.length > 0) {
-                    // 가장 가까운 몬스터 선택
-                    targets.sort((a,b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
-                    const target = targets[0];
-                    target.takeDamage(this.damage); // 피해 입히기
+                    targets.sort((a, b) =>
+                        Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y)
+                    );
+                    const t = targets[0];
+                    t.takeDamage(this.damage);
                     this.cooldown = this.cooldownMax;
                     this.isAttacking = true;
                     this.attackEffectFrame = 0;
-                    this.effectTargetPos = {x: target.x, y: target.y};
+                    this.effectTargetPos = { x: t.x, y: t.y };
                 }
             }
             draw() {
                 ctx.beginPath();
-                const baseColors = ['#a9e34b', '#69c739', '#389431', '#0a641d'];
-                ctx.fillStyle = baseColors[this.level - 1] || '#eee';
+                const baseColors = ["#a9e34b", "#69c739", "#389431", "#0a641d"];
+                ctx.fillStyle = baseColors[this.level - 1] || "#eee";
                 ctx.fillRect(this.x - TILE_SIZE / 2, this.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
 
                 if (this.isAttacking) {
-                    ctx.strokeStyle = '#ffff99';
+                    ctx.strokeStyle = "#ffff99";
                     ctx.lineWidth = 3;
-                    ctx.shadowColor = 'rgba(255,255,153,0.7)';
+                    ctx.shadowColor = "rgba(255,255,153,0.7)";
                     ctx.shadowBlur = 8;
                     ctx.strokeRect(this.x - TILE_SIZE / 2, this.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
                     ctx.shadowBlur = 0;
@@ -397,7 +469,7 @@
 
                 if (this.isAttacking && this.effectTargetPos) {
                     ctx.beginPath();
-                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
+                    ctx.strokeStyle = "rgba(255, 255, 0, 0.6)";
                     ctx.lineWidth = 2;
                     ctx.moveTo(this.x, this.y);
                     ctx.lineTo(this.effectTargetPos.x, this.effectTargetPos.y);
@@ -406,7 +478,7 @@
 
                 if (this.selected) {
                     ctx.beginPath();
-                    ctx.strokeStyle = 'rgba(40,150,40,0.5)';
+                    ctx.strokeStyle = "rgba(40,150,40,0.5)";
                     ctx.lineWidth = 3;
                     ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
                     ctx.stroke();
@@ -462,11 +534,11 @@
             }
             draw() {
                 if (this.isDead) return;
-                ctx.fillStyle = '#000';
+                ctx.fillStyle = "#000";
                 ctx.beginPath();
                 ctx.ellipse(this.x, this.y, 9, 9, 0, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.fillStyle = '#111';
+                ctx.fillStyle = "#111";
                 ctx.beginPath();
                 ctx.moveTo(this.x - 6, this.y - 7);
                 ctx.lineTo(this.x - 3, this.y - 15);
@@ -477,7 +549,7 @@
                 ctx.lineTo(this.x + 3, this.y - 15);
                 ctx.lineTo(this.x + 1, this.y - 7);
                 ctx.fill();
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = "#fff";
                 ctx.beginPath();
                 ctx.arc(this.x - 4, this.y - 2, 1.7, 0, Math.PI * 2);
                 ctx.fill();
@@ -495,11 +567,11 @@
         let towers = [];
 
         function updateTowers() {
-            towers.forEach(tower => tower.update());
+            towers.forEach((tower) => tower.update());
         }
 
         function drawTowers() {
-            towers.forEach(tower => tower.draw());
+            towers.forEach((tower) => tower.draw());
         }
 
         function drawGrass() {
@@ -509,15 +581,15 @@
                     let level = grassLevels[idx];
                     let x = grassStartX + col * (TILE_SIZE + PADDING);
                     let y = grassStartY + row * (TILE_SIZE + PADDING);
-                    const colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+                    const colors = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"];
                     ctx.fillStyle = colors[level];
-                    ctx.shadowColor = 'rgba(0,0,0,0.12)';
+                    ctx.shadowColor = "rgba(0,0,0,0.12)";
                     ctx.shadowBlur = 2;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 1;
                     ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-                    ctx.shadowColor = 'transparent';
-                    ctx.strokeStyle = '#bcf2a4';
+                    ctx.shadowColor = "transparent";
+                    ctx.strokeStyle = "#bcf2a4";
                     ctx.lineWidth = 1;
                     ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
                 }
@@ -525,11 +597,11 @@
         }
 
         function updateAndDrawEnemies() {
-            enemies.forEach(e => {
+            enemies.forEach((e) => {
                 e.update();
                 e.draw();
             });
-            enemies = enemies.filter(e => !e.isDead);
+            enemies = enemies.filter((e) => !e.isDead);
         }
 
         function updateCanvas() {
@@ -545,19 +617,19 @@
             ctxClock.clearRect(0, 0, dayClock.width, dayClock.height);
             ctxClock.translate(r, r);
 
-            ctxClock.fillStyle = '#fff';
+            ctxClock.fillStyle = "#fff";
             ctxClock.beginPath();
             ctxClock.arc(0, 0, r - 5, 0, 2 * Math.PI);
             ctxClock.fill();
 
-            ctxClock.strokeStyle = '#2ea44f';
+            ctxClock.strokeStyle = "#2ea44f";
             ctxClock.lineWidth = 6;
             ctxClock.beginPath();
             ctxClock.arc(0, 0, r - 7, 0, 2 * Math.PI);
             ctxClock.stroke();
 
             const angle = progressPercent * 2 * Math.PI - Math.PI / 2;
-            ctxClock.strokeStyle = '#2ea44f';
+            ctxClock.strokeStyle = "#2ea44f";
             ctxClock.lineWidth = 6;
             ctxClock.beginPath();
             ctxClock.moveTo(0, 0);
@@ -608,7 +680,7 @@
             dailyCommitCount = 0;
             coins += Math.ceil(workRate * 1.5);
 
-            if(currentCommitIdx < grassLevels.length - 1) {
+            if (currentCommitIdx < grassLevels.length - 1) {
                 currentCommitIdx++;
             }
 
@@ -680,15 +752,23 @@
         };
 
         function gameLoop() {
-            updateCanvas();
+            if (gameStarted) {
+                updateCanvas();
+                addWorkToCommitGauge();
+            }
             requestAnimationFrame(gameLoop);
-            addWorkToCommitGauge();
         }
 
-        updateUI();
-        gameLoop();
-        requestAnimationFrame(animateDayClock);
-        setInterval(nextDay, 24000);
+
+        function startGame() {
+            updateUI();
+            gameLoop();
+            startAvatarToggle();
+            if (gameStarted) {
+                setInterval(nextDay, 24000);
+                requestAnimationFrame(animateDayClock);
+            }
+        }
     })();
 </script>
 </body>
