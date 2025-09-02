@@ -5,5 +5,5 @@
 
 
 # About
-* Game for the [js13kGames competition 2024.](https://js13kgames.com/) (Theme for this year is Triskaidekaphobia.)
+* Game for the [js13kGames competition 2025.](https://js13kgames.com/) (Theme for this year is Black Cat.)
 * Characters and images are made of [Aseprite](https://github.com/aseprite/aseprite).
