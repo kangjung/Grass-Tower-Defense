@@ -193,7 +193,7 @@
 
 <div id="container">
     <div id="header">
-        <div id="avatar"></div>
+        <div id="avatar"> <img id="profileImg" src="" alt="profile Img" /></div>
         <div id="nickname">black-kitty-dev</div>
     </div>
 
@@ -241,6 +241,7 @@
 
         const container = document.getElementById('container');
         const nicknameLabel = document.getElementById('nickname');
+        const profileImg = document.getElementById('profileImg');
 
         loginBtn.addEventListener('click', () => {
             const nickname = nicknameInput.value.trim();
@@ -249,6 +250,7 @@
                 return;
             }
 
+            profileImg.src = `https://github.com/${nickname}.png?size=48`;
             nicknameLabel.textContent = nickname;
             loginScreen.style.display = 'none';
             container.style.display = 'block';
@@ -256,6 +258,7 @@
 
             startGame();
         });
+
 
         const coinCount = document.getElementById('coinCount');
         const workRateCount = document.getElementById('workRateCount');
