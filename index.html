@@ -30,6 +30,14 @@
         #activity-label svg {
             width: 24px; height: 24px; fill: #24292e;
         }
+        #commitBarContainer {
+            width: 100%; background: #dce4e8; border-radius: 8px; height: 32px; margin-bottom: 18px;
+        }
+        #commitBar {
+            background:#2ea44f; width:0%; height:32px;
+            border-radius:8px; text-align:center;
+            color:white; line-height:32px; font-weight:700;
+        }
         #activityOverview {
             display: flex;
             gap: 24px;
@@ -50,6 +58,7 @@
             border-radius: 20px;
             filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
             animation: subtleMove 3s ease-in-out infinite;
+            user-select: none;
         }
         @keyframes subtleMove {
             0%, 100% {transform: translateY(0);}
@@ -61,6 +70,7 @@
             left: 32px;
             width: 28px;
             animation: steam 3s ease-in-out infinite;
+            display: none;
         }
         @keyframes steam {
             0%, 100% {opacity: 1; transform: translateY(0);}
@@ -134,6 +144,7 @@
             width: 100%;
             max-width: 1280px;
             height: 220px;
+            user-select: none;
         }
         @media (max-width: 720px) {
             #activityOverview {
@@ -157,16 +168,20 @@
     </div>
 
     <canvas id="gameCanvas" width="1280" height="220"></canvas>
+
     <div id="activity-label">
         <span>Contribution Activity</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 11H4V8h16v8zM7 10h2v2H7v-2zm3 0h2v2h-2v-2zM5 14h14v2H5v-2z"/>
-        </svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 11H4V8h16v8zM7 10h2v2H7v-2zm3 0h2v2h-2v-2zM5 14h14v2H5v-2z"/></svg>
+    </div>
+
+    <div id="commitBarContainer">
+        <div id="commitBar">0%</div>
     </div>
 
     <div id="activityOverview">
         <div id="dev-image">
             <img src="/asset/avatar1.png" alt="Developer working" />
+            <img id="coffeeIcon" src="/asset/coffee.png" alt="Coffee cup" />
         </div>
         <div id="controls">
             <button id="buyCoffee">커피 구매 (50코인)</button>
@@ -233,6 +248,53 @@
         let avatarToggle = false;
         let avatarInterval;
         let coffeeTimeout;
+        let commitGauge = 0;
+        let commitSpeed = 0.15;
+        let currentCommitIdx = 0; // 오늘 칠할 잔디 칸 인덱스
+        let dailyCommitCount = 0;
+
+        function updateCommitBar() {
+            const commitBar = document.getElementById('commitBar');
+            let percent = Math.min(100, Math.floor(commitGauge));
+            commitBar.style.width = percent + '%';
+            commitBar.textContent = percent + '%';
+        }
+
+        function commitNow() {
+            dailyCommitCount++;
+            commitGauge = 0;
+            if(grassLevels[currentCommitIdx] === 0) {
+                fillNextGrassCell(1);
+            } else {
+                // 이후 커밋 횟수에 따라 레벨 결정
+                let level = determineLevelBasedOnCommitCount(dailyCommitCount);
+
+                // 잔디 칸 레벨 갱신 및 타워 레벨업 처리
+                if (grassLevels[currentCommitIdx] < level) {
+                    grassLevels[currentCommitIdx] = level;
+                }
+                grassUpgradeAllowed[currentCommitIdx] = false;
+
+                // 타워 찾기 및 레벨업
+                const tower = findTowerAt(currentCommitIdx);
+                if (tower) {
+                    tower.level = grassLevels[currentCommitIdx];
+                    tower.damage = 5 + tower.level * 3;
+                    tower.range = 120 + (tower.level - 1) * 10;
+                    tower.cooldown = 0;
+                    tower.update();
+                }
+            }
+            updateCommitBar();
+        }
+
+        function determineLevelBasedOnCommitCount(count) {
+            if(count >= 10) return 4;
+            if(count >= 5) return 3;
+            if(count >= 3) return 2;
+            if(count >= 1) return 1;
+            return 0;
+        }
 
         function startAvatarToggle() {
             avatarInterval = setInterval(() => {
@@ -266,15 +328,16 @@
             }
         };
 
-        // document.getElementById("buyNotebook").onclick = () => {
-        //     if (coins >= 500) {
-        //         coins -= 500;
-        //         dev.notebook++;
-        //         dev.power += 10;
-        //         workRate += 10;
-        //         updateUI();
-        //     }
-        // };
+        document.getElementById("buyNotebook").onclick = () => {
+            if (coins >= 500) {
+                coins -= 500;
+                dev.notebook++;
+                dev.power += 10;
+                workRate += 10;
+                commitSpeed += 0.05; // 빨라지는 커밋 속도
+                updateUI();
+            }
+        };
 
         class Tower {
             constructor(x, y, level) {
@@ -302,15 +365,19 @@
                     }
                     return;
                 }
+                // 공격 사거리 안의 몬스터 찾기
                 const targets = enemies.filter(e => !e.isDead && Math.hypot(e.x - this.x, e.y - this.y) <= this.range);
+                console.log(targets);
+                console.log(targets.length);
                 if (targets.length > 0) {
-                    targets.sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
-                    const t = targets[0];
-                    t.takeDamage(this.damage);
+                    // 가장 가까운 몬스터 선택
+                    targets.sort((a,b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
+                    const target = targets[0];
+                    target.takeDamage(this.damage); // 피해 입히기
                     this.cooldown = this.cooldownMax;
                     this.isAttacking = true;
                     this.attackEffectFrame = 0;
-                    this.effectTargetPos = { x: t.x, y: t.y };
+                    this.effectTargetPos = {x: target.x, y: target.y};
                 }
             }
             draw() {
@@ -521,10 +588,13 @@
                     if (grassLevels[idx] === 0) {
                         grassLevels[idx] = level;
                         grassUpgradeAllowed[idx] = false;
-                        // 타워로 등록
-                        let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
-                        let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+
+                        let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE/2;
+                        let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE/2;
+
+                        // 새 타워 등록
                         towers.push(new Tower(x, y, level));
+
                         return;
                     }
                 }
@@ -535,14 +605,13 @@
 
         function nextDay() {
             day++;
+            dailyCommitCount = 0;
             coins += Math.ceil(workRate * 1.5);
 
-            let level = 1;
-            if (workRate >= 120) level = 4;
-            else if (workRate >= 60) level = 3;
-            else if (workRate >= 20) level = 2;
+            if(currentCommitIdx < grassLevels.length - 1) {
+                currentCommitIdx++;
+            }
 
-            fillNextGrassCell(level);
             lockGrassUpgrades();
             dayProgress = 0;
             updateUI();
@@ -550,7 +619,15 @@
             enemies.push(new Enemy());
         }
 
-        // 타워 선택 기능
+        function addWorkToCommitGauge() {
+            commitGauge += workRate * commitSpeed;
+            updateCommitBar();
+
+            if(commitGauge >= 100) {
+                commitNow();
+            }
+        }
+
         canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
@@ -558,31 +635,31 @@
             let clickedTower = null;
             for (const t of towers) {
                 if (
-                    clickX >= t.x - TILE_SIZE/2 && clickX <= t.x + TILE_SIZE/2 &&
-                    clickY >= t.y - TILE_SIZE/2 && clickY <= t.y + TILE_SIZE/2
+                    clickX >= t.x - TILE_SIZE / 2 && clickX <= t.x + TILE_SIZE / 2 &&
+                    clickY >= t.y - TILE_SIZE / 2 && clickY <= t.y + TILE_SIZE / 2
                 ) {
                     clickedTower = t;
                     break;
                 }
             }
             towers.forEach(t => t.selected = false);
-            if (clickedTower) clickedTower.selected = true;
+            if(clickedTower) clickedTower.selected = true;
         });
 
         function animateDayClock(timestamp) {
-            if (!animateDayClock.last) animateDayClock.last = timestamp;
+            if(!animateDayClock.last) animateDayClock.last = timestamp;
             const elapsed = timestamp - animateDayClock.last;
             animateDayClock.last = timestamp;
 
-            dayProgress += elapsed / 7000; // 7초 하루
-            if (dayProgress > 1) dayProgress = 1;
+            dayProgress += elapsed / 24000; //7초
+            if(dayProgress > 1) dayProgress = 1;
 
             drawDayClock(dayProgress);
             requestAnimationFrame(animateDayClock);
         }
 
         document.getElementById('buyCoffee').onclick = () => {
-            if (coins >= 50) {
+            if(coins >= 50) {
                 coins -= 50;
                 dev.coffee++;
                 dev.power += 2;
@@ -592,11 +669,12 @@
         };
 
         document.getElementById('buyNotebook').onclick = () => {
-            if (coins >= 500) {
+            if(coins >= 500) {
                 coins -= 500;
                 dev.notebook++;
                 dev.power += 10;
                 workRate += 10;
+                commitSpeed += 0.05;
                 updateUI();
             }
         };
@@ -604,12 +682,13 @@
         function gameLoop() {
             updateCanvas();
             requestAnimationFrame(gameLoop);
+            addWorkToCommitGauge();
         }
 
         updateUI();
         gameLoop();
         requestAnimationFrame(animateDayClock);
-        setInterval(nextDay, 7000);
+        setInterval(nextDay, 24000);
     })();
 </script>
 </body>
