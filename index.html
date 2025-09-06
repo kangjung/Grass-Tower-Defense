@@ -678,7 +678,11 @@
             }
             takeDamage(amount) {
                 this.hp -= amount;
-                if (this.hp <= 0) this.isDead = true;
+                if (this.hp <= 0 && !this.isDead) {
+                    this.isDead = true;
+                    coins += 10;   // 고양이 몬스터 처치 시 코인 10개 획득 예시
+                    updateUI();    // UI 업데이트 호출
+                }
             }
         }
 
@@ -721,8 +725,31 @@
                 e.draw();
             });
             enemies = enemies.filter((e) => !e.isDead);
-        }
 
+            if(enemies.length >= maxEnemies) {
+                alert("적이 너무 많아졌습니다! 게임 오버!");
+                // 게임 리셋 혹은 다른 게임 오버 처리 함수 호출 가능
+                resetGame();
+            }
+        }
+        function resetGame() {
+            // 상태 초기화
+            coins = 0;
+            day = 1;
+            enemies = [];
+            towers = [];
+            grassLevels.fill(0);
+            grassUpgradeAllowed.fill(true);
+            currentCommitIdx = 0;
+            dailyCommitCount = 0;
+            enemiesPerDay = 1;
+            commitGauge = 0;
+            manualWorkRate = 0.5;
+            autoWorkRate = 0;
+            dev.hp = 100;
+            dev.caffeine = 70;
+            updateUI();
+        }
         function updateCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawGrass();
@@ -792,6 +819,8 @@
             }
         }
 
+        let maxEnemies = 30;      // 적 최대 생성 가능 수
+        let enemiesPerDay = 1;    // 하루마다 생성할 적 수
         let dayProgress = 0;
 
         function nextDay() {
@@ -807,7 +836,14 @@
             dayProgress = 0;
             updateUI();
 
-            enemies.push(new Enemy());
+            for(let i = 0; i < enemiesPerDay; i++) {
+                if(enemies.length < maxEnemies) {
+                    enemies.push(new Enemy());
+                }
+            }
+
+
+            enemiesPerDay = Math.min(enemiesPerDay + 1, 5);
         }
 
         function addWorkToCommitGauge(rate) {
@@ -868,7 +904,7 @@
             startAutoWork(0);
             startAvatarToggle();
             if (gameStarted) {
-                setInterval(nextDay, 24000);
+                setInterval(nextDay, 15000);
                 requestAnimationFrame(animateDayClock);
             }
         }
