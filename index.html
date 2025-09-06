@@ -492,24 +492,35 @@
             commitGauge = 0;
             updateCommitBar();
 
-            if (grassLevels[currentCommitIdx] === 0) {
-                fillNextGrassCell(1);
-            } else {
-                let level = determineLevelBasedOnCommitCount(dailyCommitCount);
-                if (grassLevels[currentCommitIdx] < level) {
-                    grassLevels[currentCommitIdx] = level;
-                }
-                grassUpgradeAllowed[currentCommitIdx] = false;
+            // currentCommitIdx 범위 체크
+            if(currentCommitIdx >= grassLevels.length) {
+                currentCommitIdx = 0;
+            }
 
-                const tower = findTowerAt(currentCommitIdx);
-                if (tower) {
-                    tower.level = grassLevels[currentCommitIdx];
+            let level = determineLevelBasedOnCommitCount(dailyCommitCount);
+
+            if (grassLevels[currentCommitIdx] === 0) {
+                // 잔디 처음 심기
+                grassLevels[currentCommitIdx] = level;
+                // 타워 새로 생성 및 등록
+                let col = Math.floor(currentCommitIdx / ROWS);
+                let row = currentCommitIdx % ROWS;
+                let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE/2;
+                let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE/2;
+                towers.push(new Tower(x, y, level));
+            } else if (grassLevels[currentCommitIdx] < level) {
+                // 이미 심어진 잔디 업그레이드
+                grassLevels[currentCommitIdx] = level;
+                let tower = findTowerAt(currentCommitIdx);
+                if(tower){
+                    tower.level = level;
                     tower.damage = 5 + tower.level * 3;
                     tower.range = 120 + (tower.level - 1) * 10;
                     tower.cooldown = 0;
                     tower.update();
                 }
             }
+
         }
 
         function startAvatarToggle() {
@@ -715,6 +726,15 @@
                     ctx.strokeStyle = "#bcf2a4";
                     ctx.lineWidth = 1;
                     ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
+
+                    if (idx === currentCommitIdx) {
+                        ctx.strokeStyle = "#2ea44f";
+                        ctx.lineWidth = 4;
+                        ctx.shadowColor = "#2ea44f";
+                        ctx.shadowBlur = 8;
+                        ctx.strokeRect(x - 2, y - 2, TILE_SIZE + 4, TILE_SIZE + 4);
+                        ctx.shadowColor = "transparent";
+                    }
                 }
             }
         }
@@ -828,10 +848,6 @@
             dailyCommitCount = 0;
             coins += Math.ceil(workRate * 1.5);
 
-            if (currentCommitIdx < grassLevels.length - 1) {
-                currentCommitIdx++;
-            }
-
             lockGrassUpgrades();
             dayProgress = 0;
             updateUI();
@@ -841,8 +857,9 @@
                     enemies.push(new Enemy());
                 }
             }
-
-
+            if (currentCommitIdx < grassLevels.length - 1) {
+                currentCommitIdx++;
+            }
             enemiesPerDay = Math.min(enemiesPerDay + 1, 5);
         }
 
