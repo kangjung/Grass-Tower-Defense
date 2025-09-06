@@ -70,7 +70,6 @@
             padding: 24px;
             align-items: center;
             margin-bottom: 36px;
-            max-width: 900px;
             position: relative;
         }
         #dev-image {
@@ -181,6 +180,62 @@
                 width: 100%;
             }
         }
+
+        .vending-machine {
+            max-width: 420px;
+            background: #e9ecef;
+            border: 5px solid #606060;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+            text-align: center;
+        }
+        .vending-machine h1 {
+            font-family: 'Impact', sans-serif;
+            color: #3867d6;
+            letter-spacing: 2px;
+            margin-bottom: 28px;
+        }
+        .items {
+            display: flex;
+            justify-content: space-around;
+            gap: 16px;
+        }
+        .item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 18px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(60,60,60,0.07);
+        }
+        .item img {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            margin-bottom: 12px;
+        }
+        .name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 17px;
+            color: #222;
+        }
+        .buy-button {
+            padding: 8px 16px;
+            font-size: 16px;
+            font-family: 'Trebuchet MS', Arial, sans-serif;
+            border: none;
+            border-radius: 6px;
+            background-color: #3867d6;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.20s;
+        }
+        .buy-button:hover {
+            background-color: #fdc639;
+            color: #222;
+        }
     </style>
 </head>
 <body>
@@ -214,8 +269,7 @@
             <img id="coffeeIcon" src="/asset/coffee.png" alt="Coffee cup" />
         </div>
         <div id="controls">
-            <button id="buyCoffee">커피 구매 (50코인)</button>
-            <button id="buyNotebook">노트북 구매 (500코인)</button>
+            <button id="workBtn">작업하기</button>
             <div id="info">
                 코인: <span id="coinCount">0</span> 작업량/일: <span id="workRateCount">0</span> Day: <span id="dayCount">1</span>
             </div>
@@ -227,8 +281,23 @@
                 <progress id="caffeine" value="70" max="100"></progress>
             </div>
         </div>
-    </div>
 
+        <div class="vending-machine">
+            <h1>Vending Machine</h1>
+            <div class="items">
+                <div class="item">
+                    <img src="coffee.png" alt="Coffee" />
+                    <span class="name">Coffee</span>
+                    <button class="buy-button" id="vmBuyCoffee">Buy Coffee</button>
+                </div>
+                <div class="item">
+                    <img src="energy.png" alt="Energy Drink" />
+                    <span class="name">Energy Drink</span>
+                    <button class="buy-button" id="vmBuyEnergy">Buy Energy</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -284,9 +353,11 @@
             power: workRate,
             coffee: 0,
             notebook: 0,
-            fatigue: 30,
             caffeine: 70,
+            hp: 100, // 체력 게이지로 사용
         };
+        fatigueBar.value = dev.hp;
+        caffeineBar.value = dev.caffeine;
 
         let grassLevels = new Array(ROWS * COLS).fill(0);
         let grassUpgradeAllowed = new Array(ROWS * COLS).fill(true);
@@ -306,9 +377,75 @@
         let avatarInterval;
         let coffeeTimeout;
         let commitGauge = 0;
-        let commitSpeed = 0.15;
+        let manualWorkRate = 0.5;  // 클릭 시 올라가는 작업량 (초기값 예시)
+        let autoWorkRate = 0;    // 자동으로 올라가는 작업량 (초기 0, 개발서적 등으로 씀)
+        let autoCommitSpeed = 0.005;    // 자동 작업 시 기본 스케일 (카페인 관련)
         let currentCommitIdx = 0;
         let dailyCommitCount = 0;
+
+
+        let autoWorkEnabled = false;
+
+        let lastWorkClickTime = Date.now();
+
+        document.getElementById("workBtn").onclick = () => {
+            if (gameStarted) {
+                commitGauge += manualWorkRate;  // 수동 전용 속도 적용
+                updateCommitBar();
+                console.log('Work clicked' + manualWorkRate)
+                lastWorkClickTime = Date.now();
+                dev.hp = Math.max(dev.hp - 1, 0);  // 체력 감소
+                updateUI();
+            }
+        };
+        // 체력 회복 루프 (게임 시작 후 setInterval로 실행)
+        setInterval(() => {
+            const now = Date.now();
+            if (gameStarted && now - lastWorkClickTime > 10000) { // 10초간 미클릭
+                if (dev.hp < 100) {
+                    dev.hp += 1; // 1씩 회복
+                    updateUI();
+                }
+            }
+        }, 1000); // 1초마다 체크
+
+
+        function startAutoWork(caffeineGain) {
+            dev.caffeine = Math.min(dev.caffeine + caffeineGain, 100);
+            autoWorkEnabled = true;
+            autoWorkRate = 1;  // 자동 증가량 기본값
+            updateUI();
+
+            if(window.caffeineTimer) clearInterval(window.caffeineTimer);
+            window.caffeineTimer = setInterval(() => {
+                if(dev.caffeine > 0) {
+                    dev.caffeine--;
+                    updateUI();
+                }
+                if(dev.caffeine <= 0) {
+                    autoWorkRate = 0;
+                    autoWorkEnabled = false;
+                    clearInterval(window.caffeineTimer);
+                }
+            }, 1000);
+        }
+
+        document.getElementById("vmBuyCoffee").onclick = () => {
+            if (coins >= 50) {
+                coins -= 50;
+                dev.coffee++;
+                startAutoWork(30); // 커피는 +30
+                updateUI();
+                showCoffeeImage();
+            }
+        };
+        document.getElementById("vmBuyEnergy").onclick = () => {
+            if (coins >= 80) {
+                coins -= 80;
+                startAutoWork(60); // 에너지음료는 +60
+                updateUI();
+            }
+        };
 
         function updateCommitBar() {
             const commitBar = document.getElementById('commitBar');
@@ -394,27 +531,6 @@
             }, 3000);
         }
 
-        document.getElementById("buyCoffee").onclick = () => {
-            if (coins >= 50) {
-                coins -= 50;
-                dev.coffee++;
-                dev.power += 2;
-                workRate += 2;
-                updateUI();
-                showCoffeeImage();
-            }
-        };
-
-        document.getElementById("buyNotebook").onclick = () => {
-            if (coins >= 500) {
-                coins -= 500;
-                dev.notebook++;
-                dev.power += 10;
-                workRate += 10;
-                commitSpeed += 0.05;
-                updateUI();
-            }
-        };
 
         class Tower {
             constructor(x, y, level) {
@@ -646,7 +762,7 @@
             coinCount.textContent = coins;
             workRateCount.textContent = workRate;
             dayCount.textContent = day;
-            fatigueBar.value = dev.fatigue;
+            fatigueBar.value = dev.hp;       // 여기서 체력으로 사용
             caffeineBar.value = dev.caffeine;
         }
 
@@ -694,11 +810,10 @@
             enemies.push(new Enemy());
         }
 
-        function addWorkToCommitGauge() {
-            commitGauge += workRate * commitSpeed;
+        function addWorkToCommitGauge(rate) {
+            commitGauge += rate * commitSpeed;
             updateCommitBar();
-
-            if(commitGauge >= 100) {
+            if (commitGauge >= 100) {
                 commitNow();
             }
         }
@@ -732,40 +847,25 @@
             drawDayClock(dayProgress);
             requestAnimationFrame(animateDayClock);
         }
-
-        document.getElementById('buyCoffee').onclick = () => {
-            if(coins >= 50) {
-                coins -= 50;
-                dev.coffee++;
-                dev.power += 2;
-                workRate += 2;
-                updateUI();
-            }
-        };
-
-        document.getElementById('buyNotebook').onclick = () => {
-            if(coins >= 500) {
-                coins -= 500;
-                dev.notebook++;
-                dev.power += 10;
-                workRate += 10;
-                commitSpeed += 0.05;
-                updateUI();
-            }
-        };
-
+        function updateWorkRate() {
+            workRate = manualWorkRate + autoWorkRate;
+        }
         function gameLoop() {
             if (gameStarted) {
                 updateCanvas();
-                addWorkToCommitGauge();
+                updateWorkRate();
+                if (autoWorkEnabled && autoWorkRate > 0) {
+                    commitGauge += autoWorkRate * autoCommitSpeed;  // 자동 전용 속도 적용
+                    updateCommitBar();
+                    if (commitGauge >= 100) commitNow();
+                }
             }
             requestAnimationFrame(gameLoop);
         }
-
-
         function startGame() {
             updateUI();
             gameLoop();
+            startAutoWork(0);
             startAvatarToggle();
             if (gameStarted) {
                 setInterval(nextDay, 24000);
