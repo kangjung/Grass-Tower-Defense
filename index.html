@@ -387,10 +387,14 @@
         let autoWorkEnabled = false;
 
         let lastWorkClickTime = Date.now();
-
         document.getElementById("workBtn").onclick = () => {
             if (gameStarted) {
                 commitGauge += manualWorkRate;  // 수동 전용 속도 적용
+                if (commitGauge >= 100) {
+                    commitGauge = 100;  // 최대 100으로 제한
+                    commit();           // 커밋 함수 호출 (commit 혹은 commitNow)
+                    commitGauge = 0;    // 커밋 후 게이지 초기화
+                }
                 updateCommitBar();
                 console.log('Work clicked' + manualWorkRate)
                 lastWorkClickTime = Date.now();
@@ -492,27 +496,24 @@
             commitGauge = 0;
             updateCommitBar();
 
-            // currentCommitIdx 범위 체크
-            if(currentCommitIdx >= grassLevels.length) {
+            if (currentCommitIdx >= grassLevels.length) {
                 currentCommitIdx = 0;
             }
 
             let level = determineLevelBasedOnCommitCount(dailyCommitCount);
-
             if (grassLevels[currentCommitIdx] === 0) {
-                // 잔디 처음 심기
                 grassLevels[currentCommitIdx] = level;
-                // 타워 새로 생성 및 등록
                 let col = Math.floor(currentCommitIdx / ROWS);
                 let row = currentCommitIdx % ROWS;
-                let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE/2;
-                let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE/2;
-                towers.push(new Tower(x, y, level));
+                let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+                let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE / 2;
+                if (!findTowerAt(currentCommitIdx)) {
+                    towers.push(new Tower(x, y, level));
+                }
             } else if (grassLevels[currentCommitIdx] < level) {
-                // 이미 심어진 잔디 업그레이드
                 grassLevels[currentCommitIdx] = level;
                 let tower = findTowerAt(currentCommitIdx);
-                if(tower){
+                if (tower) {
                     tower.level = level;
                     tower.damage = 5 + tower.level * 3;
                     tower.range = 120 + (tower.level - 1) * 10;
@@ -520,8 +521,9 @@
                     tower.update();
                 }
             }
-
+            updateCanvas();
         }
+
 
         function startAvatarToggle() {
             avatarInterval = setInterval(() => {
@@ -819,26 +821,6 @@
             }
         }
 
-        function fillNextGrassCell(level) {
-            for (let col = 0; col < COLS; col++) {
-                for (let row = 0; row < ROWS; row++) {
-                    const idx = col * ROWS + row;
-                    if (grassLevels[idx] === 0) {
-                        grassLevels[idx] = level;
-                        grassUpgradeAllowed[idx] = false;
-
-                        let x = grassStartX + col * (TILE_SIZE + PADDING) + TILE_SIZE/2;
-                        let y = grassStartY + row * (TILE_SIZE + PADDING) + TILE_SIZE/2;
-
-                        // 새 타워 등록
-                        towers.push(new Tower(x, y, level));
-
-                        return;
-                    }
-                }
-            }
-        }
-
         let maxEnemies = 30;      // 적 최대 생성 가능 수
         let enemiesPerDay = 1;    // 하루마다 생성할 적 수
         let dayProgress = 0;
@@ -853,18 +835,18 @@
             updateUI();
 
             spawnEnemyWithDelay(enemiesPerDay, 1000);
-            if (currentCommitIdx < grassLevels.length - 1) {
-                currentCommitIdx++;
-            }
+            currentCommitIdx = (currentCommitIdx + 1) % grassLevels.length;
             enemiesPerDay = Math.min(enemiesPerDay + 1, 5);
         }
 
         function addWorkToCommitGauge(rate) {
             commitGauge += rate * commitSpeed;
-            updateCommitBar();
             if (commitGauge >= 100) {
+                commitGauge = 100;
                 commitNow();
+                commitGauge = 0;
             }
+            updateCommitBar();
         }
 
         canvas.addEventListener('click', (e) => {
