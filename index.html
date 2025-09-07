@@ -704,6 +704,7 @@
                 this.y = this.top;
                 this.hp = 30;
                 this.isDead = false;
+                this.radius = baseMonsterRadius;
             }
             update() {
                 if (this.isDead) return;
@@ -742,7 +743,7 @@
                 if (this.isDead) return;
                 ctx.fillStyle = "#000";
                 ctx.beginPath();
-                ctx.ellipse(this.x, this.y, 9, 9, 0, 0, Math.PI * 2);
+                ctx.ellipse(this.x, this.y, this.radius, this.radius * 0.75, 0, 0, Math.PI*2);
                 ctx.fill();
                 ctx.fillStyle = "#111";
                 ctx.beginPath();
@@ -773,7 +774,30 @@
                 }
             }
         }
+        class BossEnemy extends Enemy {
+            constructor() {
+                super();
+                this.hp = 100 + (day / 7) * 20; // 강력한 보스 hp, 매 7일 단위 증가
+                this.radius = 18; // 큰 덩치
+                this.speed = 1.5; // 일반 몬스터보다 느린 속도
+            }
 
+            draw() {
+                // 보스 전용 그리기 - 큰 원과 독특한 색상 등
+                ctx.fillStyle = '#b33';
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.radius, this.radius * 0.75, 0, 0, 2 * Math.PI);
+                ctx.fill();
+                // 눈, 코, 입 등 디테일 추가 가능
+            }
+        }
+        function spawnBossEnemy() {
+            const pos = getRandomEnemyPosition();
+            let boss = new BossEnemy();
+            boss.x = pos.x;
+            boss.y = pos.y;
+            enemies.push(boss);
+        }
         let enemies = [];
         let towers = [];
 
@@ -822,7 +846,6 @@
                 e.draw();
             });
             enemies = enemies.filter((e) => !e.isDead);
-            console.log("적 필터 후 남은 적 수:", enemies.length);
             if(enemies.length >= maxEnemies) {
                 alert("적이 너무 많아졌습니다! 게임 오버!");
                 // 게임 리셋 혹은 다른 게임 오버 처리 함수 호출 가능
@@ -917,11 +940,23 @@
         let maxEnemies = 30;      // 적 최대 생성 가능 수
         let enemiesPerDay = 1;    // 하루마다 생성할 적 수
         let dayProgress = 0;
+        let baseMonsterHealth = 30;    // 기본 몬스터 체력
+        let baseMonsterRadius = 10;     // 기본 몬스터 크기 (반지름)
+        let healthIncreaseRate = 1.5; // 15%씩 체력 증가
+        let radiusIncreaseStep = 2;  // 크기 1.5씩 증가
+
+
 
         function nextDay() {
             day++;
             dailyCommitCount = 0;
             coins += Math.ceil(workRate * 1.5);
+
+            if(day % 7 === 0) {
+                baseMonsterHealth = Math.floor(baseMonsterHealth * healthIncreaseRate);
+                baseMonsterRadius += radiusIncreaseStep;
+                spawnBossEnemy();
+            }
 
             lockGrassUpgrades();
             dayProgress = 0;
