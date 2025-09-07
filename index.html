@@ -104,6 +104,7 @@
             flex-direction: column;
             gap: 18px;
             position: relative;
+            max-width: 450px;
         }
         #controls button {
             background: #2ea44f;
@@ -236,6 +237,11 @@
             background-color: #fdc639;
             color: #222;
         }
+
+        progress#levelStat::-webkit-progress-value { background-color: #28a745; }
+        progress#expStat::-webkit-progress-value { background-color: #218838; }
+        progress#workStat::-webkit-progress-value { background-color: #20c997; }
+        progress#monsterStat::-webkit-progress-value { background-color: #17a2b8; }
     </style>
 </head>
 <body>
@@ -259,11 +265,30 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 11H4V8h16v8zM7 10h2v2H7v-2zm3 0h2v2h-2v-2zM5 14h14v2H5v-2z"/></svg>
     </div>
 
+    <div id="stats-bar" style="display:flex; justify-content:center; gap:30px; margin-bottom:16px; user-select:none;">
+        <div class="stat-cell" style="text-align:center;">
+            <div style="font-size:12px; font-weight:700; color:#57606a;">레벨</div>
+            <progress id="levelStat" value="1" max="100" style="width:120px; height:12px; border-radius:6px;"></progress>
+            <div id="levelVal" style="font-size:14px; font-weight:600; color:#1b1f23;">1</div>
+        </div>
+        <div class="stat-cell" style="text-align:center;">
+            <div style="font-size:12px; font-weight:700; color:#57606a;">경험치</div>
+            <progress id="expStat" value="0" max="20" style="width:120px; height:12px; border-radius:6px;"></progress>
+            <div id="expVal" style="font-size:14px; font-weight:600; color:#1b1f23;">0/10</div>
+        </div>
+        <div class="stat-cell" style="text-align:center;">
+            <div style="font-size:12px; font-weight:700; color:#57606a;">몬스터</div>
+            <progress id="monsterStat" value="1" max="30" style="width:120px; height:12px; border-radius:6px;"></progress>
+            <div id="monsterVal" style="font-size:14px; font-weight:600; color:#1b1f23;">3/10</div>
+        </div>
+
+
+    </div>
     <div id="commitBarContainer">
         <div id="commitBar">0%</div>
     </div>
-
     <div id="activityOverview">
+
         <div id="dev-image">
             <img src="/asset/avatar1.png" alt="Developer working" />
             <img id="coffeeIcon" src="/asset/coffee.png" alt="Coffee cup" />
@@ -272,12 +297,16 @@
             <button id="workBtn">작업하기</button>
             <div id="info">
                 코인: <span id="coinCount">0</span> 작업량/일: <span id="workRateCount">0</span> Day: <span id="dayCount">1</span>
-            </div>
+            </div>        <div class="stat-cell" style="text-align:center;">
+            <div style="font-size:12px; font-weight:700; color:#57606a;">날짜</div>
+            <div id="dateVal" style="font-size:14px; font-weight:600; color:#1b1f23;">Day 1</div>
+        </div>
             <canvas id="dayClock" width="80" height="80"></canvas>
+
             <div id="statusBars">
-                <label for="fatigue">피로도</label>
+                <label for="fatigue">체력 : <span id="hpText"></span></label>
                 <progress id="fatigue" value="30" max="100"></progress>
-                <label for="caffeine">카페인</label>
+                <label for="caffeine">카페인 : <span id="caffeineText"></span></label>
                 <progress id="caffeine" value="70" max="100"></progress>
             </div>
         </div>
@@ -295,6 +324,18 @@
                     <span class="name">Energy Drink</span>
                     <button class="buy-button" id="vmBuyEnergy">Buy Energy</button>
                 </div>
+
+                <div class="item">
+                    <img src="energy.png" alt="Energy Drink" />
+                    <span class="name">Energy Drink</span>
+                    <button class="buy-button" id="vmBuyEnergy2">Buy Energy</button>
+                </div>
+
+                <div class="item">
+                    <img src="energy.png" alt="Energy Drink" />
+                    <span class="name">Energy Drink</span>
+                    <button class="buy-button" id="vmBuyEnergy3">Buy Energy</button>
+                </div>
             </div>
         </div>
     </div>
@@ -311,6 +352,35 @@
         const container = document.getElementById('container');
         const nicknameLabel = document.getElementById('nickname');
         const profileImg = document.getElementById('profileImg');
+        let playerLevel = 1;
+        let experience = 0;
+        let expToLevel = 10;
+        const cardPool = [
+            {
+                id: 'healBoost',
+                title: '체력 회복 속도 향상',
+                description: '자동 회복량 0.5 증가',
+                apply: () => { dev.healHp += 0.5; }
+            },
+            {
+                id: 'manualBoost',
+                title: '수동 작업량 증가',
+                description: '작업 버튼 클릭 시 증가량 상승',
+                apply: () => { manualWorkRate += 0.5; },
+            },
+            {
+                id: 'autoBoost',
+                title: '자동 작업량 증가',
+                description: '자동 작업량 증가',
+                apply: () => { autoWorkRate += 0.5; },
+            },
+            {
+                id: 'maxHpBoost',
+                title: '최대 체력 증가',
+                description: '최대 체력 +10',
+                apply: () => { dev.maxHp += 10; dev.hp = Math.min(dev.maxHp + 10, dev.maxHp); },
+            }
+        ];
 
         loginBtn.addEventListener('click', () => {
             const nickname = nicknameInput.value.trim();
@@ -333,6 +403,8 @@
         const workRateCount = document.getElementById('workRateCount');
         const dayCount = document.getElementById('dayCount');
         const fatigueBar = document.getElementById('fatigue');
+        const hpText = document.getElementById('hpText');
+        const caffeineText = document.getElementById('caffeineText');
         const caffeineBar = document.getElementById('caffeine');
         const dayClock = document.getElementById('dayClock');
         const ctxClock = dayClock.getContext('2d');
@@ -354,10 +426,14 @@
             coffee: 0,
             notebook: 0,
             caffeine: 70,
-            hp: 100, // 체력 게이지로 사용
+            hp: 100,
+            maxHp: 100,
+            healHp: 1,
         };
         fatigueBar.value = dev.hp;
+        hpText.innerText = dev.hp;
         caffeineBar.value = dev.caffeine;
+        caffeineText.innerText = dev.caffeine;
 
         let grassLevels = new Array(ROWS * COLS).fill(0);
         let grassUpgradeAllowed = new Array(ROWS * COLS).fill(true);
@@ -377,7 +453,7 @@
         let avatarInterval;
         let coffeeTimeout;
         let commitGauge = 0;
-        let manualWorkRate = 5;  // 클릭 시 올라가는 작업량 (초기값 예시)
+        let manualWorkRate = 1;  // 클릭 시 올라가는 작업량 (초기값 예시)
         let autoWorkRate = 0;    // 자동으로 올라가는 작업량 (초기 0, 개발서적 등으로 씀)
         let autoCommitSpeed = 0.005;    // 자동 작업 시 기본 스케일 (카페인 관련)
         let currentCommitIdx = 0;
@@ -388,26 +464,24 @@
 
         let lastWorkClickTime = Date.now();
         document.getElementById("workBtn").onclick = () => {
-            if (gameStarted) {
-                commitGauge += manualWorkRate;  // 수동 전용 속도 적용
-                if (commitGauge >= 100) {
-                    commitGauge = 100;  // 최대 100으로 제한
-                    commit();           // 커밋 함수 호출 (commit 혹은 commitNow)
-                    commitGauge = 0;    // 커밋 후 게이지 초기화
-                }
-                updateCommitBar();
-                console.log('Work clicked' + manualWorkRate)
-                lastWorkClickTime = Date.now();
-                dev.hp = Math.max(dev.hp - 1, 0);  // 체력 감소
-                updateUI();
-            }
+            if(!gameStarted) return;
+
+            if(dev.hp <= 0) return;
+
+
+            addWorkToCommitGauge(manualWorkRate);
+            console.log('Work clicked' + manualWorkRate)
+            lastWorkClickTime = Date.now();
+            dev.hp = Math.max(0, dev.hp - 1);
+            updateUI();
+
         };
         // 체력 회복 루프 (게임 시작 후 setInterval로 실행)
         setInterval(() => {
             const now = Date.now();
             if (gameStarted && now - lastWorkClickTime > 10000) { // 10초간 미클릭
-                if (dev.hp < 100) {
-                    dev.hp += 1; // 1씩 회복
+                if (dev.hp < dev.maxHp) {
+                    dev.hp += dev.healHp; // 회복
                     updateUI();
                 }
             }
@@ -694,6 +768,7 @@
                 if (this.hp <= 0 && !this.isDead) {
                     this.isDead = true;
                     coins += 10;   // 고양이 몬스터 처치 시 코인 10개 획득 예시
+                    onMonsterKilled();
                     updateUI();    // UI 업데이트 호출
                 }
             }
@@ -811,10 +886,28 @@
             coinCount.textContent = coins;
             workRateCount.textContent = workRate;
             dayCount.textContent = day;
-            fatigueBar.value = dev.hp;       // 여기서 체력으로 사용
+            fatigueBar.value = dev.hp;
+            fatigueBar.max = dev.maxHp;
+            hpText.innerText = dev.hp+"/"+dev.maxHp;
             caffeineBar.value = dev.caffeine;
+            caffeineText.innerText = dev.caffeine;
+            updateStatsUI();
         }
+        function updateStatsUI() {
+            document.getElementById('levelStat').value = playerLevel;
+            document.getElementById('levelVal').textContent = playerLevel;
 
+            document.getElementById('expStat').value = experience;
+            document.getElementById('expStat').max = expToLevel;
+            document.getElementById('expVal').textContent = `${experience}/${expToLevel}`;
+
+            document.getElementById('dateVal').textContent = `Day ${day}`;
+
+            const monsterCount = enemies.length;
+            document.getElementById('monsterStat').value = monsterCount;
+            document.getElementById('monsterStat').max = maxEnemies;
+            document.getElementById('monsterVal').textContent = `${monsterCount}/${maxEnemies}`;
+        }
         function lockGrassUpgrades() {
             for (let i = 0; i < grassLevels.length; i++) {
                 if (grassLevels[i] > 0) grassUpgradeAllowed[i] = false;
@@ -839,13 +932,14 @@
             enemiesPerDay = Math.min(enemiesPerDay + 1, 5);
         }
 
-        function addWorkToCommitGauge(rate) {
-            commitGauge += rate * commitSpeed;
-            if (commitGauge >= 100) {
-                commitGauge = 100;
+        function addWorkToCommitGauge(amount) {
+            commitGauge += amount;
+
+            while (commitGauge >= 100) {
+                commitGauge -= 100;
                 commitNow();
-                commitGauge = 0;
             }
+
             updateCommitBar();
         }
 
@@ -886,9 +980,7 @@
                 updateCanvas();
                 updateWorkRate();
                 if (autoWorkEnabled && autoWorkRate > 0) {
-                    commitGauge += autoWorkRate * autoCommitSpeed;  // 자동 전용 속도 적용
-                    updateCommitBar();
-                    if (commitGauge >= 100) commitNow();
+                    addWorkToCommitGauge(autoWorkRate * autoCommitSpeed);
                 }
             }
             requestAnimationFrame(gameLoop);
@@ -942,6 +1034,46 @@
                 spawned++;
             }, delay);
         }
+        function onMonsterKilled() {
+            experience++;
+            if(experience >= expToLevel) {
+                experience = 0;
+                playerLevel++;
+                showLevelUpCards();
+                expToLevel += 5;
+            }
+        }
+        function showLevelUpCards() {
+            const modal = document.createElement('div');
+            modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0.7);z-index:999;';
+
+            const container = document.createElement('div');
+            container.style = 'background:#fff;padding:20px;border-radius:10px;display:flex;gap:16px;';
+
+            // 랜덤 3장 선택
+            const options = [];
+            while(options.length < 3) {
+                const card = cardPool[Math.floor(Math.random() * cardPool.length)];
+                if(!options.includes(card)) options.push(card);
+            }
+
+            options.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.style = 'cursor:pointer;padding:12px;border:1px solid #ccc;border-radius:8px;width:130px;text-align:center;';
+                cardDiv.innerHTML = `<h3>${card.title}</h3><p style="font-size:12px">${card.description}</p>`;
+                cardDiv.onclick = () => {
+                    card.apply();
+                    playerLevel++;
+                    updateUI();
+                    document.body.removeChild(modal);
+                };
+                container.appendChild(cardDiv);
+            });
+
+            modal.appendChild(container);
+            document.body.appendChild(modal);
+        }
+
     })();
 </script>
 </body>
