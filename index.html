@@ -691,7 +691,8 @@
                 }
             }
         }
-
+        const catSprite = new Image();
+        catSprite.src = '/asset/cat.png'; // 32x32 4프레임 가로 스프라이트
         class Enemy {
             constructor() {
                 this.left = grassStartX;
@@ -705,9 +706,20 @@
                 this.hp = 30;
                 this.isDead = false;
                 this.radius = baseMonsterRadius;
+                this.frameCount = 4;
+                this.frameIndex = 0;
+                this.frameDelay = 10; // 프레임 변경 간격(틱 수)
+                this.frameTicker = 0;
+                this.width = 32;
+                this.height = 32;
             }
             update() {
                 if (this.isDead) return;
+                this.frameTicker++;
+                if (this.frameTicker >= this.frameDelay) {
+                    this.frameTicker = 0;
+                    this.frameIndex = (this.frameIndex + 1) % this.frameCount;
+                }
                 switch (this.side) {
                     case 0:
                         this.x += this.speed;
@@ -741,28 +753,14 @@
             }
             draw() {
                 if (this.isDead) return;
-                ctx.fillStyle = "#000";
-                ctx.beginPath();
-                ctx.ellipse(this.x, this.y, this.radius, this.radius * 0.75, 0, 0, Math.PI*2);
-                ctx.fill();
-                ctx.fillStyle = "#111";
-                ctx.beginPath();
-                ctx.moveTo(this.x - 6, this.y - 7);
-                ctx.lineTo(this.x - 3, this.y - 15);
-                ctx.lineTo(this.x - 1, this.y - 7);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.moveTo(this.x + 6, this.y - 7);
-                ctx.lineTo(this.x + 3, this.y - 15);
-                ctx.lineTo(this.x + 1, this.y - 7);
-                ctx.fill();
-                ctx.fillStyle = "#fff";
-                ctx.beginPath();
-                ctx.arc(this.x - 4, this.y - 2, 1.7, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(this.x + 4, this.y - 2, 1.7, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.drawImage(
+                    catSprite,
+                    this.frameIndex * this.width, 0, this.width, this.height,
+                    this.x - this.width / 2,
+                    this.y - this.height / 2,
+                    this.width,
+                    this.height
+                );
             }
             takeDamage(amount) {
                 this.hp -= amount;
@@ -780,15 +778,22 @@
                 this.hp = 100 + (day / 7) * 20; // 강력한 보스 hp, 매 7일 단위 증가
                 this.radius = 18; // 큰 덩치
                 this.speed = 1.5; // 일반 몬스터보다 느린 속도
+                this.frameCount = 4;
+                this.frameIndex = 0;
+                this.frameDelay = 12;
+                this.frameTicker = 0;
             }
 
             draw() {
-                // 보스 전용 그리기 - 큰 원과 독특한 색상 등
-                ctx.fillStyle = '#b33';
-                ctx.beginPath();
-                ctx.ellipse(this.x, this.y, this.radius, this.radius * 0.75, 0, 0, 2 * Math.PI);
-                ctx.fill();
-                // 눈, 코, 입 등 디테일 추가 가능
+                if (this.isDead) return;
+                ctx.drawImage(
+                    catSprite,
+                    this.frameIndex * 32, 0, 32, 32,
+                    this.x - this.width / 2,
+                    this.y - this.height / 2,
+                    this.width,
+                    this.height
+                );
             }
         }
         function spawnBossEnemy() {
