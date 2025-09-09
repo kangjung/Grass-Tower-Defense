@@ -456,6 +456,7 @@
         const caffeineBar = document.getElementById('caffeine');
         const dayClock = document.getElementById('dayClock');
         const ctxClock = dayClock.getContext('2d');
+        const date = 10000; // 하루 (10초)
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -473,7 +474,7 @@
             power: workRate,
             coffee: 0,
             notebook: 0,
-            caffeine: 70,
+            caffeine: 0,
             hp: 100,
             maxHp: 100,
             healHp: 1,
@@ -751,13 +752,16 @@
                 this.side = 0;
                 this.x = this.left;
                 this.y = this.top;
-                this.hp = 30;
-                this.isDead = false;
-                this.radius = baseMonsterRadius;
+
+                this.hp = baseMonsterHealth;       // 변화된 기본 체력
+                this.radius = baseMonsterRadius;   // 변화된 기본 크기(범위)
+                this.scale = this.radius / 10;     // 렌더링 크기 배율 (기본 반지름 10일때 1배)
+
                 this.frameCount = 4;
                 this.frameIndex = 0;
-                this.frameDelay = 10; // 프레임 변경 간격(틱 수)
+                this.frameDelay = 10;
                 this.frameTicker = 0;
+
                 this.width = 32;
                 this.height = 32;
             }
@@ -801,13 +805,17 @@
             }
             draw() {
                 if (this.isDead) return;
+                const scaledWidth = this.width * this.scale;
+                const scaledHeight = this.height * this.scale;
+
                 ctx.drawImage(
                     catSprite,
-                    this.frameIndex * this.width, 0, this.width, this.height,
-                    this.x - this.width / 2,
-                    this.y - this.height / 2,
-                    this.width,
-                    this.height
+                    this.frameIndex * this.width, 0,
+                    this.width, this.height,
+                    this.x - scaledWidth / 2,
+                    this.y - scaledHeight / 2,
+                    scaledWidth,
+                    scaledHeight
                 );
             }
             takeDamage(amount) {
@@ -834,13 +842,15 @@
 
             draw() {
                 if (this.isDead) return;
+                const scaledWidth = this.width * this.scale;
+                const scaledHeight = this.height * this.scale;
                 ctx.drawImage(
                     catSprite,
-                    this.frameIndex * 32, 0, 32, 32,
-                    this.x - this.width / 2,
-                    this.y - this.height / 2,
-                    this.width,
-                    this.height
+                    this.frameIndex * this.width, 0, this.width, this.height,
+                    this.x - scaledWidth / 2,
+                    this.y - scaledHeight / 2,
+                    scaledWidth,
+                    scaledHeight
                 );
             }
         }
@@ -920,7 +930,9 @@
             manualWorkRate = 0.5;
             autoWorkRate = 0;
             dev.hp = 100;
-            dev.caffeine = 70;
+            dev.caffeine = 0;
+            baseMonsterHealth = 30;
+            baseMonsterRadius = 10;
             updateUI();
         }
         function updateCanvas() {
@@ -1054,7 +1066,7 @@
             const elapsed = timestamp - animateDayClock.last;
             animateDayClock.last = timestamp;
 
-            dayProgress += elapsed / 15000; //7초
+            dayProgress += elapsed / date;
             if(dayProgress > 1) dayProgress = 1;
 
             drawDayClock(dayProgress);
@@ -1080,7 +1092,7 @@
             startAvatarToggle();
             if (gameStarted) {
                 if(window.nextDayInterval) clearInterval(window.nextDayInterval);
-                window.nextDayInterval = setInterval(nextDay, 15000);
+                window.nextDayInterval = setInterval(nextDay, date);
                 requestAnimationFrame(animateDayClock);
             }
         }
