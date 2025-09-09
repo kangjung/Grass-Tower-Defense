@@ -182,66 +182,105 @@
             }
         }
 
-        .vending-machine {
-            max-width: 420px;
-            background: #e9ecef;
-            border: 5px solid #606060;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.14);
-            text-align: center;
-        }
-        .vending-machine h1 {
-            font-family: 'Impact', sans-serif;
-            color: #3867d6;
-            letter-spacing: 2px;
-            margin-bottom: 28px;
-        }
-        .items {
-            display: flex;
-            justify-content: space-around;
-            gap: 16px;
-        }
-        .item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #fff;
-            padding: 18px 12px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(60,60,60,0.07);
-        }
-        .item img {
-            width: 96px;
-            height: 96px;
-            object-fit: contain;
-            margin-bottom: 12px;
-        }
-        .name {
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 17px;
-            color: #222;
-        }
-        .buy-button {
-            padding: 8px 16px;
-            font-size: 16px;
-            font-family: 'Trebuchet MS', Arial, sans-serif;
-            border: none;
-            border-radius: 6px;
-            background-color: #3867d6;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.20s;
-        }
-        .buy-button:hover {
-            background-color: #fdc639;
-            color: #222;
-        }
-
         progress#levelStat::-webkit-progress-value { background-color: #28a745; }
         progress#expStat::-webkit-progress-value { background-color: #218838; }
         progress#workStat::-webkit-progress-value { background-color: #20c997; }
         progress#monsterStat::-webkit-progress-value { background-color: #17a2b8; }
+
+
+
+        /*자판기 스타일*/
+        .pixel-vm {
+               width: 260px;
+               background: #cbe0f7;
+               border: 4px solid #4471a3;
+               border-radius: 12px;
+               box-shadow: 3px 3px 0 #87a7c7;
+               padding: 14px 16px 16px 16px;
+               font-family: 'Courier New', monospace;
+           }
+        .slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 6px 0;
+            padding: 8px 10px;
+            border-radius: 7px;
+            border: 2px solid #175285;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            box-shadow: 1px 1.5px 0 #87a7c7;
+            font-size: 1rem;
+            width: 100%;
+            background: none;
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+        .coffee { background: #6d4c2f; color: #fff; }
+        .energy { background: #1bc0f7; color: #267438; }
+        .choco { background: #332018; color: #fff; }
+        .slot:active, .slot:focus, .slot:hover {
+            outline: 2px solid #fff83d;
+            box-shadow: 0 0 0 3px #fffac233;
+            filter: brightness(1.13);
+        }
+        .icon-pixel {
+            display:inline-block;
+            width: 34px; height: 24px;
+            margin-left: 10px;
+            vertical-align:middle;
+        }
+
+        .mug { background: linear-gradient(#553,#a45 90%,#bcc); border-radius:6px 6px 12px 12px; border:3px solid #333; position:relative;}
+        .mug::after {content:''; display:block; position:absolute; right:-9px; top:8px;
+            width:12px; height:12px; border:3px solid #333; border-radius:12px; background:rgba(240,240,240,0.5);}
+        .can { background: linear-gradient(#e5e5e5 70%,#8cf 95%,#ccc 100%); border:3px solid #444; border-radius:4px; position:relative;}
+        .can::after { content: ''; position: absolute; left: 9px; top: 4px; width: 7px; height: 12px; background: yellow; border-radius:2px; }
+
+        .buttons { display: flex; justify-content: flex-start; gap:7px; margin:11px 0 3px 0;}
+        .btn { width:21px; height:21px; border-radius:50%; border:3px solid #122; outline:none; }
+        .red { background: #e44343; border-color:#850;}
+        .green { background: #4ceb51; border-color:#283;}
+        .blue { background: #46beea; border-color:#258;}
+        .yellow { background: #ffe066; border-color:#ab9a23;}
+
+        .action-btns { display:flex; gap:13px; margin-top:6px;}
+        .btn-action {
+            font-family: inherit;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            padding: 5px 16px;
+            letter-spacing: 2px;
+            box-shadow: 1px 2px #87a7c7;
+            cursor: pointer;
+        }
+        .cancel { background: #d33; color:#fff; }
+        .select { background:#19c340; color:#fff;}
+        .slot-info {
+            margin-top: 6px;
+            text-align: center;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .price {
+            font-weight: 700;
+            color: #fde293; /* 은은한 금색 */
+        }
+
+        .effect {
+            font-weight: 500;
+            color: #a9e34b; /* 초록색 계열 효과 표시 */
+        }
+
+        /* 슬롯 버튼 패딩 충분히 확보 필요 */
+        .slot {
+            flex-direction: column;
+            padding: 8px 10px 14px 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -310,32 +349,41 @@
                 <progress id="caffeine" value="70" max="100"></progress>
             </div>
         </div>
-
-        <div class="vending-machine">
-            <h1>Vending Machine</h1>
-            <div class="items">
-                <div class="item">
-                    <img src="coffee.png" alt="Coffee" />
-                    <span class="name">Coffee</span>
-                    <button class="buy-button" id="vmBuyCoffee">Buy Coffee</button>
+        <div class="pixel-vm">
+            <button class="slot coffee" id="vmBuyCoffee">
+                <span class="slot-label">COFFEE</span>
+                <span class="icon-pixel mug"></span>
+                <div class="slot-info">
+                    <div class="price">50 코인</div>
+                    <div class="effect">카페인 +50</div>
                 </div>
-                <div class="item">
-                    <img src="energy.png" alt="Energy Drink" />
-                    <span class="name">Energy Drink</span>
-                    <button class="buy-button" id="vmBuyEnergy">Buy Energy</button>
+            </button>
+            <button class="slot energy" id="vmBuyEnergy">
+                <span class="slot-label">ENERGY DRINK</span>
+                <span class="icon-pixel can"></span>
+                <div class="slot-info">
+                    <div class="price">80 코인</div>
+                    <div class="effect">카페인 +80</div>
                 </div>
-
-                <div class="item">
-                    <img src="energy.png" alt="Energy Drink" />
-                    <span class="name">Energy Drink</span>
-                    <button class="buy-button" id="vmBuyEnergy2">Buy Energy</button>
+            </button>
+            <button class="slot choco" id="vmBuyChocoBar">
+                <span class="slot-label">CHOCOLATE BAR</span>
+                <span class="icon-pixel bar"></span>
+                <div class="slot-info">
+                    <div class="price">120 코인</div>
+                    <div class="effect">체력 +30</div>
                 </div>
-
-                <div class="item">
-                    <img src="energy.png" alt="Energy Drink" />
-                    <span class="name">Energy Drink</span>
-                    <button class="buy-button" id="vmBuyEnergy3">Buy Energy</button>
-                </div>
+            </button>
+            <!-- 하단 버튼 영역 및 액션 버튼 유지 -->
+            <div class="buttons">
+                <button class="btn red"></button>
+                <button class="btn green"></button>
+                <button class="btn blue"></button>
+                <button class="btn yellow"></button>
+            </div>
+            <div class="action-btns">
+                <button class="btn-action cancel">CANCEL</button>
+                <button class="btn-action select">SELECT</button>
             </div>
         </div>
     </div>
