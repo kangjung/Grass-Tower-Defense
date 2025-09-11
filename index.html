@@ -857,27 +857,36 @@
             }
             draw() {
                 ctx.beginPath();
-                const baseColors = ["#a9e34b", "#69c739", "#389431", "#0a641d"];
+                const baseColors = ["#a9e34b", "#69c739", "#389431", "#0a641d", "#196127"];
+                const colorIndex = Math.min(this.level, baseColors.length - 1);
                 ctx.fillStyle = baseColors[this.level - 1] || "#eee";
                 ctx.fillRect(this.x - TILE_SIZE / 2, this.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
 
                 if (this.isAttacking) {
-                    ctx.strokeStyle = "#ffff99";
-                    ctx.lineWidth = 3;
+                    let lineWidth = 3 + this.level;
+                    const attackColors = ["#aaaaaa", "#88cc55", "#55aa33", "#339900", "#227700"];
+                    ctx.strokeStyle = attackColors[colorIndex] || "#339900";
+                    ctx.lineWidth = lineWidth;
                     ctx.shadowColor = "rgba(255,255,153,0.7)";
                     ctx.shadowBlur = 8;
                     ctx.strokeRect(this.x - TILE_SIZE / 2, this.y - TILE_SIZE / 2, TILE_SIZE, TILE_SIZE);
                     ctx.shadowBlur = 0;
+
+                    if (this.effectTargetPos) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = ctx.strokeStyle;
+                        ctx.lineWidth = lineWidth + 1;
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(this.effectTargetPos.x, this.effectTargetPos.y);
+                        ctx.stroke();
+                    }
+                } else {
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = "#bccbb9";
+                    ctx.strokeRect(this.x - 9, this.y - 9, 18, 18);
                 }
 
-                if (this.isAttacking && this.effectTargetPos) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = "rgba(255, 255, 0, 0.6)";
-                    ctx.lineWidth = 2;
-                    ctx.moveTo(this.x, this.y);
-                    ctx.lineTo(this.effectTargetPos.x, this.effectTargetPos.y);
-                    ctx.stroke();
-                }
+
 
                 if (this.selected) {
                     ctx.beginPath();
