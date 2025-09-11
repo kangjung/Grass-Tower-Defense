@@ -326,11 +326,25 @@
                 padding-top: 12px;
             }
         }
+        #commitColors span {
+             margin-top: 4px;
+             color: #555;
+         }
+        #avatar img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid #e1e4e8;
+            box-shadow: 0 0 4px rgba(0,0,0,0.1);
+            object-fit: cover;
+            display: block;
+        }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
+    <img id="catLogo" alt="Cat Logo" style="width:48px; height:48px; border-radius:50%;">
     <h2>Grass Tower Defense</h2>
     <input type="text" id="gitNickname" placeholder="Enter your GitHub username" />
     <button id="loginBtn">Start Game</button>
@@ -354,12 +368,36 @@
             <li>The enemy is a black cat inspired by Mona from GitHub.</li>
             <li>When the black cat reaches a certain quantity (30), it becomes a game over.</li>
         </ul>
+        <div id="commitColors" style="margin-top: 16px; font-family: monospace; font-size: 14px;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width:20px; height:20px; background:#ebedf0; border:1px solid #ccc;"></div>
+                    <span>0 commits</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width:20px; height:20px; background:#c6e48b; border:1px solid #ccc;"></div>
+                    <span>1-3 commits</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width:20px; height:20px; background:#7bc96f; border:1px solid #ccc;"></div>
+                    <span>4-6 commits</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width:20px; height:20px; background:#239a3b; border:1px solid #ccc;"></div>
+                    <span>7-9 commits</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div style="width:20px; height:20px; background:#196127; border:1px solid #ccc;"></div>
+                    <span>10+ commits</span>
+                </div>
+            </div>
+        </div>
         <button id="closeGameIntro" style="margin-top: 16px; background: #2ea44f; color:white; border:none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Close</button>
     </div>
 </div>
 <div id="container">
     <div id="header">
-        <div id="avatar"> <img id="profileImg" src="" alt="profile Img" /></div>
+        <div id="avatar"> <img id="profileImg" src=""  alt="profile Img"  /></div>
         <div id="nickname">black-kitty-dev</div>
     </div>
 
@@ -455,7 +493,7 @@
                         <span class="slot-label">ENERGY DRINK</span>
                         <div class="price-effect-wrapper">
                             <div class="price">80 Coin</div>
-                            <div class="effect">Caffeine +80</div>
+                            <div class="effect">Caffeine +90</div>
                         </div>
                     </div>
                     <canvas class="icon-pixel" data-sprite-index="0" width="50" height="50"></canvas>
@@ -520,11 +558,14 @@
         loginBtn.addEventListener('click', () => {
             const nickname = nicknameInput.value.trim();
             if (!nickname) {
-                alert('닉네임을 입력해주세요.');
+                alert('Please enter your nickname.');
                 return;
             }
 
             profileImg.src = `https://github.com/${nickname}.png?size=48`;
+            profileImg.onerror = function() {
+                profileImg.src = catFrameDataUrl;
+            };
             nicknameLabel.textContent = nickname;
             loginScreen.style.display = 'none';
             container.style.display = 'block';
@@ -651,8 +692,7 @@
         document.getElementById("vmBuyCoffee").onclick = () => {
             if (coins >= 50) {
                 coins -= 50;
-                dev.coffee++;
-                startAutoWork(30);
+                startAutoWork(50);
                 updateUI();
                 showCoffeeImage();
             }
@@ -660,7 +700,7 @@
         document.getElementById("vmBuyEnergy").onclick = () => {
             if (coins >= 80) {
                 coins -= 80;
-                startAutoWork(60);
+                startAutoWork(90);
                 updateUI();
                 showCoffeeImage();
             }
@@ -850,6 +890,25 @@
         }
         const catSprite = new Image();
         catSprite.src = '/asset/cat.png';
+        let catFrameDataUrl = getCatSpriteFrame(0, 32, 32);
+        function getCatSpriteFrame(frameIndex = 0, frameWidth = 32, frameHeight = 32) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = frameWidth;
+            tempCanvas.height = frameHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            tempCtx.drawImage(
+                catSprite,
+                frameIndex * frameWidth, 0, frameWidth, frameHeight,
+                0, 0, frameWidth, frameHeight
+            );
+            return tempCanvas.toDataURL();
+        }
+        catSprite.onload = () => {
+            catFrameDataUrl = getCatSpriteFrame(0, 32, 32);
+            document.getElementById('profileImg').src = catFrameDataUrl;
+            document.getElementById('catLogo').src = catFrameDataUrl;
+        };
         class Enemy {
             constructor() {
                 this.left = grassStartX;
@@ -935,39 +994,8 @@
                 }
             }
         }
-        class BossEnemy extends Enemy {
-            constructor() {
-                super();
-                this.hp = 100 + (day / 7) * 20;
-                this.radius = 18;
-                this.speed = 1.5;
-                this.frameCount = 4;
-                this.frameIndex = 0;
-                this.frameDelay = 12;
-                this.frameTicker = 0;
-            }
 
-            draw() {
-                if (this.isDead) return;
-                const scaledWidth = this.width * this.scale;
-                const scaledHeight = this.height * this.scale;
-                ctx.drawImage(
-                    catSprite,
-                    this.frameIndex * this.width, 0, this.width, this.height,
-                    this.x - scaledWidth / 2,
-                    this.y - scaledHeight / 2,
-                    scaledWidth,
-                    scaledHeight
-                );
-            }
-        }
-        function spawnBossEnemy() {
-            const pos = getRandomEnemyPosition();
-            let boss = new BossEnemy();
-            boss.x = pos.x;
-            boss.y = pos.y;
-            enemies.push(boss);
-        }
+
         let enemies = [];
         let towers = [];
 
@@ -1017,7 +1045,7 @@
             });
             enemies = enemies.filter((e) => !e.isDead);
             if(enemies.length >= maxEnemies) {
-                alert("There are too many black cats! Game over!");
+                alert("Too many black cats came! Game over!");
                 resetGame();
             }
         }
@@ -1026,11 +1054,10 @@
             day = 1;
             enemies = [];
             towers = [];
-            grassLevels.fill(0);
-            grassUpgradeAllowed.fill(true);
+            grassLevels = new Array(ROWS * COLS).fill(0);
+            grassUpgradeAllowed = new Array(ROWS * COLS).fill(true);
             currentCommitIdx = 0;
             dailyCommitCount = 0;
-            enemiesPerDay = 1;
             commitGauge = 0;
             manualWorkRate = 1;
             autoWorkRate = 0;
@@ -1039,6 +1066,9 @@
             baseMonsterHealth = 30;
             baseMonsterRadius = 10;
             updateUI();
+            gameStarted = false;
+            container.style.display = 'none';
+            loginScreen.style.display = 'block';
         }
         function updateCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1111,7 +1141,7 @@
         let dayProgress = 0;
         let baseMonsterHealth = 30;
         let baseMonsterRadius = 10;
-        let healthIncreaseRate = 1.5;
+        let healthIncreaseRate = 2;
         let radiusIncreaseStep = 2;
 
 
@@ -1121,10 +1151,9 @@
             dailyCommitCount = 0;
             coins += Math.ceil(workRate * 1.5);
 
-            if(day % 7 === 0) {
+            if(day % 7 === 1) {
                 baseMonsterHealth = Math.floor(baseMonsterHealth * healthIncreaseRate);
                 baseMonsterRadius += radiusIncreaseStep;
-                spawnBossEnemy();
             }
 
             lockGrassUpgrades();
