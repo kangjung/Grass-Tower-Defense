@@ -104,7 +104,6 @@
             flex-direction: column;
             gap: 18px;
             position: relative;
-            max-width: 450px;
         }
         #controls button {
             background: #2ea44f;
@@ -192,8 +191,8 @@
         /*자판기 스타일*/
         .pixel-vm {
                width: 260px;
-               background: #cbe0f7;
-               border: 4px solid #4471a3;
+               background: #0d192769;
+               border: 4px solid #767778;
                border-radius: 12px;
                box-shadow: 3px 3px 0 #87a7c7;
                padding: 14px 16px 16px 16px;
@@ -201,41 +200,38 @@
            }
         .slot {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin: 6px 0;
-            padding: 8px 10px;
-            border-radius: 7px;
-            border: 2px solid #175285;
-            font-weight: bold;
-            letter-spacing: 1.5px;
-            box-shadow: 1px 1.5px 0 #87a7c7;
-            font-size: 1rem;
+            justify-content: center;
+            padding: 6px 2px 6px 2px;
+            margin: 8px 0;
+            border-radius: 10px;
+            min-height: 58px;    /* 이미지 여유 */
             width: 100%;
+            border: 2px solid #767778;
+            box-shadow: 1px 1.5px 0 #87a7c7;
             background: none;
-            cursor: pointer;
             transition: background 0.15s, box-shadow 0.15s;
+            font-size: 1rem;
         }
-        .coffee { background: #6d4c2f; color: #fff; }
-        .energy { background: #1bc0f7; color: #267438; }
-        .choco { background: #332018; color: #fff; }
+        .slot-inner {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .slot-inner > .slot-info-col {
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - 50px); /* 아이콘 가로 공간 제외 */
+        }
+        .coffee { background: #9c7a6b; color: #fff; }
+        .energy { background: #0b0054; color: #fff; }
+        .choco { background: #6d4c2f; color: #fff; }
         .slot:active, .slot:focus, .slot:hover {
             outline: 2px solid #fff83d;
             box-shadow: 0 0 0 3px #fffac233;
             filter: brightness(1.13);
         }
-        .icon-pixel {
-            display:inline-block;
-            width: 34px; height: 24px;
-            margin-left: 10px;
-            vertical-align:middle;
-        }
-
-        .mug { background: linear-gradient(#553,#a45 90%,#bcc); border-radius:6px 6px 12px 12px; border:3px solid #333; position:relative;}
-        .mug::after {content:''; display:block; position:absolute; right:-9px; top:8px;
-            width:12px; height:12px; border:3px solid #333; border-radius:12px; background:rgba(240,240,240,0.5);}
-        .can { background: linear-gradient(#e5e5e5 70%,#8cf 95%,#ccc 100%); border:3px solid #444; border-radius:4px; position:relative;}
-        .can::after { content: ''; position: absolute; left: 9px; top: 4px; width: 7px; height: 12px; background: yellow; border-radius:2px; }
 
         .buttons { display: flex; justify-content: flex-start; gap:7px; margin:11px 0 3px 0;}
         .btn { width:21px; height:21px; border-radius:50%; border:3px solid #122; outline:none; }
@@ -243,27 +239,6 @@
         .green { background: #4ceb51; border-color:#283;}
         .blue { background: #46beea; border-color:#258;}
         .yellow { background: #ffe066; border-color:#ab9a23;}
-
-        .action-btns { display:flex; gap:13px; margin-top:6px;}
-        .btn-action {
-            font-family: inherit;
-            font-weight: bold;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            padding: 5px 16px;
-            letter-spacing: 2px;
-            box-shadow: 1px 2px #87a7c7;
-            cursor: pointer;
-        }
-        .cancel { background: #d33; color:#fff; }
-        .select { background:#19c340; color:#fff;}
-        .slot-info {
-            margin-top: 6px;
-            text-align: center;
-            font-size: 12px;
-            color: #fff;
-        }
 
         .price {
             font-weight: 700;
@@ -280,7 +255,40 @@
             flex-direction: column;
             padding: 8px 10px 14px 10px;
         }
+        .icon-pixel {
+            width: 50px;
+            height: 50px;
+            min-width: 48px;
+            min-height: 48px;
+            image-rendering: pixelated;
+            border-radius: 8px;
+            margin: 0 2px;
+        }
+        .slot-info-col {
+             display: flex;
+             flex-direction: column;
+             justify-content: center;
+             gap: 0px;
+             min-width: 0;
+         }
 
+
+        .slot-label {
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .price,
+        .effect {
+            font-size: 0.9em;
+            display: inline-block;
+            width: auto;
+        }
+        .price-effect-wrapper {
+            gap: 12px;
+        }
     </style>
 </head>
 <body>
@@ -304,33 +312,38 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 11H4V8h16v8zM7 10h2v2H7v-2zm3 0h2v2h-2v-2zM5 14h14v2H5v-2z"/></svg>
     </div>
 
-    <div id="stats-bar" style="display:flex; justify-content:center; gap:30px; margin-bottom:16px; user-select:none;">
-        <div class="stat-cell" style="text-align:center;">
-            <div style="font-size:12px; font-weight:700; color:#57606a;">레벨</div>
-            <progress id="levelStat" value="1" max="100" style="width:120px; height:12px; border-radius:6px;"></progress>
-            <div id="levelVal" style="font-size:14px; font-weight:600; color:#1b1f23;">1</div>
-        </div>
-        <div class="stat-cell" style="text-align:center;">
-            <div style="font-size:12px; font-weight:700; color:#57606a;">경험치</div>
-            <progress id="expStat" value="0" max="20" style="width:120px; height:12px; border-radius:6px;"></progress>
-            <div id="expVal" style="font-size:14px; font-weight:600; color:#1b1f23;">0/10</div>
-        </div>
-        <div class="stat-cell" style="text-align:center;">
-            <div style="font-size:12px; font-weight:700; color:#57606a;">몬스터</div>
-            <progress id="monsterStat" value="1" max="30" style="width:120px; height:12px; border-radius:6px;"></progress>
-            <div id="monsterVal" style="font-size:14px; font-weight:600; color:#1b1f23;">3/10</div>
-        </div>
-
-
-    </div>
     <div id="commitBarContainer">
         <div id="commitBar">0%</div>
     </div>
     <div id="activityOverview">
 
         <div id="dev-image">
-            <img src="/asset/avatar1.png" alt="Developer working" />
-            <img id="coffeeIcon" src="/asset/coffee.png" alt="Coffee cup" />
+            <div id="avatar-container" style="width:128px; height:128px; overflow:hidden;">
+                <canvas id="avatar-canvas" width="128" height="128"></canvas>
+            </div>
+            <div id="stats-bar" style="justify-content:center; gap:30px; margin-bottom:16px; user-select:none;">
+                <div class="stat-cell" style="text-align:center;">
+                    <div>
+                        <span style="font-size:12px; font-weight:700; color:#57606a;">레벨</span>
+                        <span id="levelVal" style="font-size:14px; font-weight:600; color:#1b1f23;">1</span>
+                    </div>
+                    <progress id="levelStat" value="1" max="100" style="width:120px; height:12px; border-radius:6px;"></progress>
+                </div>
+                <div class="stat-cell" style="text-align:center;">
+                    <div>
+                        <span style="font-size:12px; font-weight:700; color:#57606a;">경험치</span>
+                        <span id="expVal" style="font-size:14px; font-weight:600; color:#1b1f23;">0/10</span>
+                    </div>
+                    <progress id="expStat" value="0" max="20" style="width:120px; height:12px; border-radius:6px;"></progress>
+                </div>
+                <div class="stat-cell" style="text-align:center;">
+                    <div>
+                        <span style="font-size:12px; font-weight:700; color:#57606a;">몬스터</span>
+                        <span id="monsterVal" style="font-size:14px; font-weight:600; color:#1b1f23;">3/10</span>
+                    </div>
+                    <progress id="monsterStat" value="1" max="30" style="width:120px; height:12px; border-radius:6px;"></progress>
+                </div>
+            </div>
         </div>
         <div id="controls">
             <button id="workBtn">작업하기</button>
@@ -349,29 +362,44 @@
                 <progress id="caffeine" value="70" max="100"></progress>
             </div>
         </div>
+
+
         <div class="pixel-vm">
-            <button class="slot coffee" id="vmBuyCoffee">
-                <span class="slot-label">COFFEE</span>
-                <span class="icon-pixel mug"></span>
-                <div class="slot-info">
-                    <div class="price">50 코인</div>
-                    <div class="effect">카페인 +50</div>
-                </div>
-            </button>
-            <button class="slot energy" id="vmBuyEnergy">
-                <span class="slot-label">ENERGY DRINK</span>
-                <span class="icon-pixel can"></span>
-                <div class="slot-info">
-                    <div class="price">80 코인</div>
-                    <div class="effect">카페인 +80</div>
-                </div>
-            </button>
             <button class="slot choco" id="vmBuyChocoBar">
-                <span class="slot-label">CHOCOLATE BAR</span>
-                <span class="icon-pixel bar"></span>
-                <div class="slot-info">
-                    <div class="price">120 코인</div>
-                    <div class="effect">체력 +30</div>
+                <div class="slot-inner">
+                    <div class="slot-info-col">
+                        <span class="slot-label">CHOCOLATE BAR</span>
+                        <div class="price-effect-wrapper">
+                            <div class="price">150 Coin</div>
+                            <div class="effect">Hp +30</div>
+                        </div>
+                    </div>
+                    <canvas class="icon-pixel" data-sprite-index="2" width="50" height="50"></canvas>
+                </div>
+            </button>
+            <button class="slot coffee" id="vmBuyCoffee">
+                <div class="slot-inner">
+                    <div class="slot-info-col">
+                        <div class="slot-label">COFFEE</div>
+                        <div class="price-effect-wrapper">
+                            <div class="price">50 Coin</div>
+                            <div class="effect">Caffeine +50</div>
+                        </div>
+                    </div>
+                    <canvas class="icon-pixel" data-sprite-index="1" width="50" height="50"></canvas>
+                </div>
+            </button>
+
+            <button class="slot energy" id="vmBuyEnergy">
+                <div class="slot-inner">
+                    <div class="slot-info-col">
+                        <span class="slot-label">ENERGY DRINK</span>
+                        <div class="price-effect-wrapper">
+                            <div class="price">80 Coin</div>
+                            <div class="effect">Caffeine +80</div>
+                        </div>
+                    </div>
+                    <canvas class="icon-pixel" data-sprite-index="0" width="50" height="50"></canvas>
                 </div>
             </button>
             <!-- 하단 버튼 영역 및 액션 버튼 유지 -->
@@ -381,10 +409,7 @@
                 <button class="btn blue"></button>
                 <button class="btn yellow"></button>
             </div>
-            <div class="action-btns">
-                <button class="btn-action cancel">CANCEL</button>
-                <button class="btn-action select">SELECT</button>
-            </div>
+
         </div>
     </div>
 </div>
@@ -392,7 +417,9 @@
 <script>
     (() => {
         let gameStarted = false;
-
+        const itemImage = new Image();
+        itemImage.src = "/asset/item_border.png";  // png 경로
+        const iconCanvases = document.querySelectorAll('.icon-pixel');
         const loginScreen = document.getElementById('loginScreen');
         const loginBtn = document.getElementById('loginBtn');
         const nicknameInput = document.getElementById('gitNickname');
@@ -403,6 +430,8 @@
         let playerLevel = 1;
         let experience = 0;
         let expToLevel = 10;
+        let coffeeEffectActive = false;
+        let recoveringStatus = false;
         const cardPool = [
             {
                 id: 'healBoost',
@@ -493,12 +522,6 @@
         const grassStartX = (canvas.width - grassWidth) / 2;
         const grassStartY = (canvas.height - grassHeight) / 2;
 
-        const devImageElement = document.querySelector("#dev-image img:first-child");
-        const coffeeIcon = document.getElementById("coffeeIcon");
-
-        const avatar1 = '/asset/avatar1.png';
-        const avatar2 = '/asset/avatar2.png';
-        let avatarToggle = false;
         let avatarInterval;
         let coffeeTimeout;
         let commitGauge = 0;
@@ -507,7 +530,11 @@
         let autoCommitSpeed = 0.005;    // 자동 작업 시 기본 스케일 (카페인 관련)
         let currentCommitIdx = 0;
         let dailyCommitCount = 0;
+        const avatarImg = new Image();
+        avatarImg.src = "/asset/avatar.png";  // 새로운 4칸 합친 이미지
 
+        const avatarCanvas = document.getElementById("avatar-canvas");
+        const avatarCtx = avatarCanvas.getContext("2d");
 
         let autoWorkEnabled = false;
 
@@ -522,6 +549,8 @@
             console.log('Work clicked' + manualWorkRate)
             lastWorkClickTime = Date.now();
             dev.hp = Math.max(0, dev.hp - 1);
+
+            recoveringStatus = false;
             updateUI();
 
         };
@@ -531,6 +560,7 @@
             if (gameStarted && now - lastWorkClickTime > 10000) { // 10초간 미클릭
                 if (dev.hp < dev.maxHp) {
                     dev.hp += dev.healHp; // 회복
+                    recoveringStatus =true;
                     updateUI();
                 }
             }
@@ -571,9 +601,17 @@
                 coins -= 80;
                 startAutoWork(60); // 에너지음료는 +60
                 updateUI();
+                showCoffeeImage();
             }
         };
-
+        document.getElementById("vmBuyChocoBar").onclick = () => {
+            if (coins >= 150) {
+                coins -= 150;
+                dev.hp = Math.min(dev.hp + 30, dev.maxHp);
+                updateUI();
+                showCoffeeImage();
+            }
+        };
         function updateCommitBar() {
             const commitBar = document.getElementById('commitBar');
             let percent = Math.min(100, Math.floor(commitGauge));
@@ -647,23 +685,46 @@
             updateCanvas();
         }
 
+        let avatarFrameIndex = 0;
+        function updateAvatarState() {
+            if (dev.hp <= 0) {
+                avatarFrameIndex = 3;  // 체력 0 (책상에 업드린 모습)
+            } else if (isDrinkingCoffee()) {
+                avatarFrameIndex = 2;  // 커피 마시는 모습
+            } else if (isRecovering()) {
+                avatarFrameIndex = 3;  // 체력 회복 중인 모습
+            } else {
+                // 기본 반복: avatar1(0), avatar2(1)
+                avatarFrameIndex = (avatarFrameIndex + 1) % 2;
+            }
+        }
+
+        function drawAvatar() {
+            avatarCtx.clearRect(0, 0, 128, 128);
+            avatarCtx.imageSmoothingEnabled = false;
+
+            avatarCtx.drawImage(
+                avatarImg,
+                avatarFrameIndex * 64, 0, 64, 64,   // 이미지 영역 선택
+                0, 0, 128, 128                       // 캔버스 내 위치, 크기
+            );
+        }
 
         function startAvatarToggle() {
             avatarInterval = setInterval(() => {
-                avatarToggle = !avatarToggle;
-                devImageElement.src = avatarToggle ? avatar1 : avatar2;
+                if (!isDrinkingCoffee() && !isRecovering()) {
+                    updateAvatarState();
+                    drawAvatar();
+                }
             }, 500);
         }
 
         function showCoffeeImage() {
             clearInterval(avatarInterval);
             clearTimeout(coffeeTimeout);
-            devImageElement.style.display = "none";
-            coffeeIcon.style.display = "block";
+            coffeeEffectActive = true;
             coffeeTimeout = setTimeout(() => {
-                coffeeIcon.style.display = "none";
-                devImageElement.style.display = "";
-                startAvatarToggle();
+                coffeeEffectActive = false;
             }, 3000);
         }
 
@@ -1086,10 +1147,29 @@
             requestAnimationFrame(gameLoop);
         }
         function startGame() {
+            clearInterval(avatarInterval);
             updateUI();
             gameLoop();
             startAutoWork(0);
             startAvatarToggle();
+
+            iconCanvases.forEach(canvas => {
+                const ctx = canvas.getContext('2d');
+                const index = parseInt(canvas.dataset.spriteIndex); // 0,1,2 중 하나
+                const spriteWidth = 32;
+                const spriteHeight = 32;
+
+                ctx.clearRect(0, 0, 50, 50);
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(
+                    itemImage,
+                    index * spriteWidth, 0,    // 스프라이트 x, y
+                    spriteWidth, spriteHeight, // 잘라낼 크기
+                    0, 0,
+                    50, 50  // 캔버스에 그릴 크기
+                );
+            });
+
             if (gameStarted) {
                 if(window.nextDayInterval) clearInterval(window.nextDayInterval);
                 window.nextDayInterval = setInterval(nextDay, date);
@@ -1173,7 +1253,15 @@
             modal.appendChild(container);
             document.body.appendChild(modal);
         }
+        function isDrinkingCoffee() {
+            // 예: 최근 커피 마신 후 일정 시간 안
+            return coffeeEffectActive; // boolean 변수, 로직에 따라 설정
+        }
 
+        function isRecovering() {
+            // 예: 체력 회복 중 상태 플래그
+            return recoveringStatus; // boolean 상태 변수, 구현 필요
+        }
     })();
 </script>
 </body>
