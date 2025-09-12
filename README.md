@@ -2,7 +2,7 @@
 ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white) <br/><br/>
-Play it now: https://js13kgames.com/drafts/grass-tower-defense
+Play it now: https://js13kgames.com/2025/games/grass-tower-defense
 <img width="1507" height="1013" alt="image" src="https://github.com/user-attachments/assets/d93e911b-85bc-4a50-9223-9352a2c62a92" />
 
 The game is about a developer who tries every day to stop enemies (black cats inspired by GitHub's mascot Mona) from overwhelming the field.
