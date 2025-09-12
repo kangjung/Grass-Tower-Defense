@@ -7,9 +7,7 @@
 
 The game is about a developer who tries every day to stop enemies (black cats inspired by GitHub's mascot Mona) from overwhelming the field.
 
-Grass Tower Defense is a strategic tower defense game inspired by GitHub’s contribution graph, famous for its grid of green squares. In Korea, this graph is lovingly called the “grass field” (잔디밭), and developers often say they “plant grass” (잔디를 심는다) each day they contribute code. This delightful metaphor highlights daily progress as if nurturing a lawn — with each contribution representing a fresh patch of green grass.
-
-The name "Grass Tower Defense" reflects the concept of continuous effort and growth through GitHub's content graph, and I wanted to combine programming culture and gameplay.
+Grass Tower Defense is a strategic tower defense game inspired by GitHub’s contribution graph, which is famous for its grid of green squares. In South Korea, this graph is affectionately known as the “grass field” (잔디밭), and developers often say they “plant grass” (잔디를 심는다) every day they contribute code. This charming metaphor represents daily progress as if nurturing a lawn, where each contribution adds a fresh patch of green grass.
 
 Game Introduction
 This is a tower defense game inspired by GitHub's commit graph. Build towers and defend against monsters.
@@ -17,10 +15,11 @@ This is a tower defense game inspired by GitHub's commit graph. Build towers and
 # How to play
 1. Enter your GitHub username and start playing. (it doesn't matter if it doesn't exist)
 2. Click “Work” to gain contribution points and build towers.
-3. Use items like coffee to boost stamina and productivity.
-4. The enemy is a black cat inspired by Mona from GitHub.
-5. When the black cat reaches a certain quantity (30), it becomes a game over.
-6. The steps of the tower are as follows. (0 commits / 1-3 commits / 4-6 commits / 7-9 commits / 10+ commits
+3. If you have caffeine, your work will proceed automatically, though at a slower pace.
+4. Enemies are black cats inspired by Mona, GitHub’s mascot.
+5. If too many black cats (30) overwhelm the field, it’s game over.
+6. You cannot plant grass for previous days.
+7. Towers grow stronger with more contributions: 0 commits / 1-3 commits / 4-6 commits / 7-9 commits / 10+ commits.
 
 # About
 * Game for the [js13kGames competition 2025.](https://js13kgames.com/) (Theme for this year is Black Cat.)
