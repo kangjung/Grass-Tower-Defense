@@ -57,7 +57,7 @@
             width: 100%; background: #dce4e8; border-radius: 8px; height: 32px; margin-bottom: 18px;
         }
         #commitBar {
-            background:#2ea44f; width:0%; height:32px;
+            background:#2ea44f; width:0; height:32px;
             border-radius:8px; text-align:center;
             color:white; line-height:32px; font-weight:700;
         }
@@ -86,14 +86,7 @@
             0%, 100% {transform: translateY(0);}
             50% {transform: translateY(-6px);}
         }
-        #coffeeIcon {
-            position: absolute;
-            top: 90px;
-            left: 32px;
-            width: 28px;
-            animation: steam 3s ease-in-out infinite;
-            display: none;
-        }
+
         @keyframes steam {
             0%, 100% {opacity: 1; transform: translateY(0);}
             50% {opacity: 0.6; transform: translateY(-6px);}
@@ -183,7 +176,6 @@
 
         progress#levelStat::-webkit-progress-value { background-color: #28a745; }
         progress#expStat::-webkit-progress-value { background-color: #218838; }
-        progress#workStat::-webkit-progress-value { background-color: #20c997; }
         progress#monsterStat::-webkit-progress-value { background-color: #17a2b8; }
 
         .pixel-vm {
@@ -239,15 +231,14 @@
 
         .price {
             font-weight: 700;
-            color: #fde293; /* 은은한 금색 */
+            color: #fde293;
         }
 
         .effect {
             font-weight: 500;
-            color: #a9e34b; /* 초록색 계열 효과 표시 */
+            color: #a9e34b;
         }
 
-        /* 슬롯 버튼 패딩 충분히 확보 필요 */
         .slot {
             flex-direction: column;
             padding: 8px 10px 14px 10px;
@@ -265,7 +256,7 @@
              display: flex;
              flex-direction: column;
              justify-content: center;
-             gap: 0px;
+             gap: 0;
              min-width: 0;
          }
 
@@ -287,16 +278,6 @@
             gap: 12px;
         }
 
-        #gameIntro {
-            margin-top: 24px;
-            font-family: 'Courier New', monospace;
-            background: #f6f8fa;
-            border-left: 4px solid #2ea44f;
-            padding-left: 16px;
-            color: #24292e;
-            line-height: 1.4;
-        }
-
         #gameIntro h3, #gameIntro h4 {
             margin-bottom: 8px;
             font-weight: 700;
@@ -311,21 +292,6 @@
         #loginScreen button {
             margin-top: 12px;
         }
-
-        @media (max-width: 720px) {
-            #loginWrapper {
-                flex-direction: column;
-                align-items: center;
-                padding: 40px 16px;
-            }
-            #gameIntro {
-                margin-top: 32px;
-                border-left: none;
-                border-top: 4px solid #2ea44f;
-                padding-left: 0;
-                padding-top: 12px;
-            }
-        }
         #commitColors span {
              margin-top: 4px;
              color: #555;
@@ -339,6 +305,33 @@
             object-fit: cover;
             display: block;
         }
+        button {
+            background-color: #2ea44f; /* 그린톤 배경 */
+            border: 2px solid #238636; /* 진한 녹색 테두리 */
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 5px #1f792e;
+            transition: background-color 0.2s, box-shadow 0.1s;
+            user-select: none;
+        }
+        button:hover {
+            background-color: #36c95c;
+        }
+        button:active {
+            box-shadow: 0 2px #1f792e;
+            transform: translateY(3px);
+        }
+        button:disabled {
+            background-color: #94d3a2;
+            border-color: #7bb174;
+            cursor: not-allowed;
+            box-shadow: none;
+            color: #e6f4ea;
+        }
     </style>
     <script type="text/javascript" src="/asset/ZzFXMicro.js"></script>
     <script src="/asset/zzfxm.min.js"></script>
@@ -346,12 +339,16 @@
 <body>
 
 <div id="loginScreen">
-    <img id="catLogo" alt="Cat Logo" style="width:48px; height:48px; border-radius:50%;">
+    <img id="catLogo" alt="Cat Logo" style="width:48px; height:48px; border-radius:50%;" src="">
     <h2>Grass Tower Defense</h2>
-    <input type="text" id="gitNickname" placeholder="Enter your GitHub username" />
+    <input type="text" id="gitNickname" placeholder="Enter your GitHub username" title="username"/>
     <button id="loginBtn">Start Game</button>
     <p style="margin-top: 12px; font-size: 0.9rem; color: #555;">
         New to this game? <a href="#" id="gameIntroLink" style="color: #2ea44f; text-decoration: none; cursor: pointer;">Learn more</a>
+    </p>
+    <p style="margin-top: 12px; font-size: 0.9rem; color: #555;">
+        Sound: <a href="#" id="muteBtnLogin" style="color: #2ea44f; text-decoration: none; cursor: pointer;">BGM Mute </a> /
+        <a href="#" id="effectMuteBtnLogin" style="color: #2ea44f; text-decoration: none; cursor: pointer;"> Effect Mute</a>
     </p>
 </div>
 <div id="gameIntroModal" style="display: none; position: fixed; top: 0; left: 0;
@@ -365,7 +362,7 @@
         <ul>
             <li>Enter your GitHub username and start playing. (it doesn't matter if it doesn't exist)</li>
             <li>Click “Work” to gain contribution points and build towers.</li>
-            <li>If you have caffeine, your work will proceed automatically, though at a slower pace.</li>
+            <li>If you have caffeinee, your work will proceed automatically, though at a slower pace.</li>
             <li>Enemies are black cats inspired by Mona, GitHub’s mascot.</li>
             <li>If too many black cats (30) overwhelm the field, it’s game over.</li>
             <li>You cannot plant grass for previous days.</li>
@@ -414,7 +411,6 @@
         <div id="commitBar">0%</div>
     </div>
     <div id="activityOverview">
-
         <div id="dev-image">
             <div id="avatar-container" style="width:128px; height:128px; overflow:hidden;">
                 <canvas id="avatar-canvas" width="128" height="128"></canvas>
@@ -457,8 +453,8 @@
             <div id="statusBars">
                 <label for="fatigue">HP : <span id="hpText"></span></label>
                 <progress id="fatigue" value="30" max="100"></progress>
-                <label for="caffeine">Caffeine : <span id="caffeineText"></span></label>
-                <progress id="caffeine" value="70" max="100"></progress>
+                <label for="caffeinee">caffeinee : <span id="caffeineeText"></span></label>
+                <progress id="caffeinee" value="70" max="100"></progress>
             </div>
         </div>
 
@@ -482,7 +478,7 @@
                         <div class="slot-label">COFFEE</div>
                         <div class="price-effect-wrapper">
                             <div class="price">50 Coin</div>
-                            <div class="effect">Caffeine +50</div>
+                            <div class="effect">caffeinee +50</div>
                         </div>
                     </div>
                     <canvas class="icon-pixel" data-sprite-index="1" width="50" height="50"></canvas>
@@ -495,17 +491,15 @@
                         <span class="slot-label">ENERGY DRINK</span>
                         <div class="price-effect-wrapper">
                             <div class="price">80 Coin</div>
-                            <div class="effect">Caffeine +90</div>
+                            <div class="effect">caffeinee +90</div>
                         </div>
                     </div>
                     <canvas class="icon-pixel" data-sprite-index="0" width="50" height="50"></canvas>
                 </div>
             </button>
             <div class="buttons">
-                <button class="btn red"></button>
-                <button class="btn green"></button>
-                <button class="btn blue"></button>
-                <button class="btn yellow"></button>
+                <button id="muteBtn" style="width: 100px; margin-left: 20px; padding: 6px 12px; font-size: 0.9rem; cursor: pointer;">BGM<br>Mute</button>
+                <button id="effectMuteBtn" style="width: 100px; margin-left: 20px; padding: 6px 12px; font-size: 0.9rem; cursor: pointer;">Effect<br>Mute</button>
             </div>
 
         </div>
@@ -515,46 +509,90 @@
     (() => {
         const song = [
             [
-                [1.2, 0, 60, 0, 0, 0, 0.15, 0, 3, -1, 4, 40, 0.10, 4],
-                [0, 0, 480, 0, 0, 0, 0.07, 0, 2, 0, 1.0],
-                [1.0, 0, 20, 0, 0, 0, 0.12, 0, 3, 0, 0.8, 0.04],
-                [0.8, 0, 600, 0, 0, 0, 0.10, 0, 0.1, 0, 0.05]
+                [1.3,0,70,,.03,.15,2,1.7,,,,,.03,3.8,-.05,,.25],
+                [1.0,0,30,,,.2,3,4,,,3,.9,.04],
+                [.9,0,740,,.05,.1,2,.35,-.1,-.18,9,.02,,.1,.12,,.06],
+                [1.6,0,12,,.02,.08,2,2.2,,, ,,.02,2.5,.1,,.2]
             ],
             [
                 [
-                    [2, -1, 10, 10, 10, 5, 10, 9, 9, 9, 5, 9],
-                    [0, 1, 20, 20, 20, 20, 20, 20, 20, 20],
-                    [1, -1, 10, 20, 10, 20, 10, 20, 10, 20, 10, 20],
-                    [2, -1, 11, 11, 11, 5, 11, 9, 9, 9, 5, 9]
+                    [0,-1,13,16,18,20,18,16,13,,,,,,,,,,,,,,,,,,, 13,16,18,20,18,16,13, 20,22,25,22,20,18,16, 13, , ,13,16,18,16,13, ,],
+                    [2,-1,13,0,11,,,,,,,,,,13,,25,25,11,11,23,11,,11,23,11,11,11,23,22,18,,30,,18,18,30,18,,18,30,18,18,18,30,22,13,,25,,13,13,25,13,,13,25,13,13,13,25,,],
+                    [3,0,13,,,,,13, ,,,,,,,,,,,,,,,,,,,13,,,,,13, ,13,13,,,,,13, ,13,,,,,13, ,],
+                    [2,0,,,,20,,,,,,25,,,,,,20,25, ,,,18,20, ,,,25, ,,,]
+                ],
+                [
+                    [0,-1,20,22,25,22,20,18,16, 18,20,22,,,,,,,,,,,,,,,,,,,20,18,16,13,18,20,22,20,18,16,13, 13,16,18,20,18,16,13, ,],
+                    [2,-1,13,0,11,,,,,,,,,,13,,25,25,11,11,23,11,,11,23,11,11,11,23,22,18,,30,,18,18,30,18,,18,30,18,18,18,30,22,13,,25,,13,13,25,13,,13,25,13,13,13,25,,],
+                    [3,0,13,,,,,13,13,,13,,,,,13,13,,13,,,,,13,13,,],
+                    [2,0,,,,25,,,,20,,,,,,,,,,,,,,,,,,,,,,25,,,,20,,18,,,22,,,,,,,,,,,,,,,,,,,,20,,,25,,,]
                 ]
             ],
-            [0, 0, 0, 0]
+            [0,0,1,1,0,1,0,1]
         ];
         let bgmPlayer = null;
-
+        let isMuted = false;
+        let isBGMMuted = false;
         function playBgm() {
             if (bgmPlayer) bgmPlayer.stop();
             const songData = zzfxM(...song);
             bgmPlayer = zzfxP(...songData);
             bgmPlayer.loop = true;
-        }
-        function stopBgm() {
-            if (bgmPlayer) {
-                bgmPlayer.stop();
-                bgmPlayer = null;
-            }
+            bgmPlayer.volume = isBGMMuted ? 0 : 1;
         }
 
+
+        const muteBtn = document.getElementById('muteBtn');
+        const muteBtnLogin = document.getElementById('muteBtnLogin');
+
+        const effectMuteBtn = document.getElementById('effectMuteBtn');
+        const effectMuteBtnLogin = document.getElementById('effectMuteBtnLogin');
+
+
+        function toggleMute() {
+            isBGMMuted = !isBGMMuted;
+            muteBtn.innerHTML = isBGMMuted ? "BGM<br>Unmute" : "BGM<br>Mute";
+            muteBtnLogin.textContent = isBGMMuted ? "BGM Unmute" : "BGM Mute";
+            if (isBGMMuted) {
+                if (bgmPlayer) bgmPlayer.stop();
+            } else {
+                playBgm();
+            }
+        }
+        muteBtn.addEventListener('click', toggleMute);
+        muteBtnLogin.addEventListener('click', toggleMute);
+        function toggleEffectMute() {
+            isMuted = !isMuted;
+            effectMuteBtn.innerHTML = isMuted ? "Effect<br>Unmute" : "Effect<br>Mute";
+            effectMuteBtnLogin.textContent = isMuted ? "Effect Unmute" : "Effect Mute";
+        }
+        effectMuteBtn.addEventListener('click', toggleEffectMute);
+        effectMuteBtnLogin.addEventListener('click', toggleEffectMute);
+
         function playAttackSound() {
+            if (isMuted) return;
             zzfx(...[1, 0.05, 120, 0.01, 0.07, 0.1, 1, 3.4, 8, 40, 0, 0, 0, 0, 0, 0, 0, 0.97, 0.09, 0, -1415]);
         }
         function playEnemyDefeatSound() {
+            if (isMuted) return;
             zzfx(...[, , 925, 0.04, 0.3, 0.6, 1, 0.3, , 6.27, -184, 0.09, 0.17]);
         }
         function playClickSound() {
+            if (isMuted) return;
             zzfx(...[, , 537, 0.02, 0.02, 0.22, 1, 1.59, -6.98, 4.97]);
         }
-
+        function playCoffeeSound() {
+            if (isMuted) return;
+            zzfx(...[, , 150, 0.2, 0.05, 0.2, 2, 1.5, 2, 2.5, , , , 0.5, 0.1, 0.05]);
+        }
+        function playEnergyDrinkSound() {
+            if (isMuted) return;
+            zzfx(...[, , 300, 0.15, 0.05, 0.25, 2, 1.8, 6, 4.5, , , , 1.5, 0.2, 0.07]);
+        }
+        function playChocoBarSound() {
+            if (isMuted) return;
+            zzfx(...[, , 90, 0.08, 0.01, 0.1, 3.5, 2.5, , , , , , 0.2, 0.3, 0.02, 0.12]);
+        }
         const itemImage = new Image();
         itemImage.src = "/asset/item_border.png";
 
@@ -570,8 +608,8 @@
         const workRateCount = document.getElementById('workRateCount');
         const fatigueBar = document.getElementById('fatigue');
         const hpText = document.getElementById('hpText');
-        const caffeineText = document.getElementById('caffeineText');
-        const caffeineBar = document.getElementById('caffeine');
+        const caffeineeText = document.getElementById('caffeineeText');
+        const caffeineeBar = document.getElementById('caffeinee');
         const dayClock = document.getElementById('dayClock');
         const ctxClock = dayClock.getContext('2d');
 
@@ -596,7 +634,7 @@
         let dev = {
             coffee: 0,
             notebook: 0,
-            caffeine: 0,
+            caffeinee: 0,
             hp: 100,
             maxHp: 100,
             healHp: 1,
@@ -604,8 +642,8 @@
         fatigueBar.value = dev.hp;
         fatigueBar.max = dev.maxHp;
         hpText.innerText = dev.hp;
-        caffeineBar.value = dev.caffeine;
-        caffeineText.innerText = dev.caffeine;
+        caffeineeBar.value = dev.caffeinee;
+        caffeineeText.innerText = dev.caffeinee;
 
         let grassLevels = new Array(ROWS * COLS).fill(0);
         let grassUpgradeAllowed = new Array(ROWS * COLS).fill(true);
@@ -617,6 +655,8 @@
         let autoCommitSpeed = 0.01;
         let currentCommitIdx = 0;
         let dailyCommitCount = 0;
+        let coffeeEffectActive = false;
+        let recoveringStatus = false;
 
         const avatarImg = new Image();
         avatarImg.src = "/asset/avatar.png";
@@ -641,8 +681,8 @@
             },
             {
                 id: 'autoBoost',
-                title: 'Auto workload increase (caffein)',
-                description: 'Auto workload increase (caffein)',
+                title: 'Auto workload increase (caffeine)',
+                description: 'Auto workload increase (caffeine)',
                 apply: () => { autoWorkRate += 0.5; }
             },
             {
@@ -677,13 +717,13 @@
             fatigueBar.value = dev.hp;
             fatigueBar.max = dev.maxHp;
             hpText.innerText = `${dev.hp}/${dev.maxHp}`;
-            caffeineBar.value = dev.caffeine;
-            caffeineText.innerText = dev.caffeine;
+            caffeineeBar.value = dev.caffeinee;
+            caffeineeText.innerText = dev.caffeinee;
             updateStatsUI();
         }
         function updateStatsUI() {
             document.getElementById('levelStat').value = playerLevel;
-            document.getElementById('levelVal').textContent = playerLevel;
+            document.getElementById('levelVal').textContent = playerLevel + "";
             document.getElementById('expStat').value = experience;
             document.getElementById('expStat').max = expToLevel;
             document.getElementById('expVal').textContent = `${experience}/${expToLevel}`;
@@ -781,7 +821,6 @@
 
                     if (this.effectTargetPos) {
                         ctx.beginPath();
-                        ctx.strokeStyle = ctx.strokeStyle;
                         ctx.lineWidth = ctx.lineWidth + 1;
                         ctx.moveTo(this.x, this.y);
                         ctx.lineTo(this.effectTargetPos.x, this.effectTargetPos.y);
@@ -1203,22 +1242,22 @@
             workRate = manualWorkRate + autoWorkRate;
         }
 
-        function startAutoWork(caffeineGain) {
-            dev.caffeine = Math.min(dev.caffeine + caffeineGain, 100);
+        function startAutoWork(caffeineeGain) {
+            dev.caffeinee = Math.min(dev.caffeinee + caffeineeGain, 100);
             autoWorkEnabled = true;
             autoWorkRate = 1;
             updateUI();
 
-            if (window.caffeineTimer) clearInterval(window.caffeineTimer);
-            window.caffeineTimer = setInterval(() => {
-                if (dev.caffeine > 0) {
-                    dev.caffeine--;
+            if (window.caffeineeTimer) clearInterval(window.caffeineeTimer);
+            window.caffeineeTimer = setInterval(() => {
+                if (dev.caffeinee > 0) {
+                    dev.caffeinee--;
                     updateUI();
                 }
-                if (dev.caffeine <= 0) {
+                if (dev.caffeinee <= 0) {
                     autoWorkRate = 0;
                     autoWorkEnabled = false;
-                    clearInterval(window.caffeineTimer);
+                    clearInterval(window.caffeineeTimer);
                 }
             }, 1000);
         }
@@ -1228,6 +1267,7 @@
                 coins -= 50;
                 startAutoWork(50);
                 updateUI();
+                playCoffeeSound();
                 showCoffeeImage();
             }
         };
@@ -1236,6 +1276,7 @@
                 coins -= 80;
                 startAutoWork(90);
                 updateUI();
+                playEnergyDrinkSound();
                 showCoffeeImage();
             }
         };
@@ -1244,6 +1285,7 @@
                 coins -= 150;
                 dev.hp = Math.min(dev.hp + 30, dev.maxHp);
                 updateUI();
+                playChocoBarSound();
                 showCoffeeImage();
             }
         };
@@ -1342,7 +1384,7 @@
             manualWorkRate = 1;
             autoWorkRate = 0;
             dev.hp = 100;
-            dev.caffeine = 0;
+            dev.caffeinee = 0;
             baseMonsterHealth = 30;
             baseMonsterRadius = 10;
             baseMonsterSpeed = 2;
